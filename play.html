@@ -3,54 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🐵 MonkeyMod - Jugando</title>
-    <!-- Cargamos la VM para que se ejecuten los bloques del juego -->
+    <title>🐵 MonkeyMod - Modo Jugador</title>
     <script src="scratch-vm.js"></script>
     <style>
-        body { font-family: sans-serif; background-color: #1a1a1a; color: white; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
-        h1 { color: #ffab19; margin-bottom: 5px; }
-        #stage-canvas { background-color: #fff; border: 6px solid #00bcd4; border-radius: 8px; width: 480px; height: 360px; }
-        .controls { margin-top: 15px; display: flex; gap: 10px; }
-        button { background-color: #00bcd4; border: none; color: white; padding: 10px 20px; font-weight: bold; border-radius: 5px; cursor: pointer; font-size: 16px; }
-        .btn-back { background-color: #555; }
+        body { font-family: sans-serif; background-color: #0f1115; color: white; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        .player-box { background-color: #181b24; padding: 25px; border-radius: 12px; border: 2px solid #232834; box-shadow: 0 10px 30px rgba(0,0,0,0.6); text-align: center; }
+        h1 { color: #ffab19; margin: 0 0 5px 0; font-size: 24px; }
+        #stage-canvas { background-color: #ffffff; border-radius: 6px; width: 480px; height: 360px; box-shadow: inset 0 0 10px rgba(0,0,0,0.2); }
+        .controls { margin-top: 15px; display: flex; gap: 12px; justify-content: center; }
+        button { background-color: #232834; border: none; color: white; padding: 10px 22px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 15px; }
+        button.flag { background-color: #4c97ff; }
+        button.stop { background-color: #ff4c4c; }
+        button:hover { opacity: 0.9; }
+        .btn-back { background-color: #3a3f50; }
     </style>
 </head>
 <body>
 
-    <h1 id="player-title">Cargando Proyecto...</h1>
-    <p id="player-id" style="color: #888; margin-top: 0;">ID: ---------</p>
-
-    <canvas id="stage-canvas" width="480" height="360"></canvas>
-
-    <div class="controls">
-        <button id="green-flag">🟢 Iniciar</button>
-        <button id="stop-all">🔴 Detener</button>
-        <button id="edit-back" class="btn-back">🐵 Volver al Editor</button>
+    <div class="player-box">
+        <h1 id="title">MonkeyMod Player</h1>
+        <p id="sub-id" style="color: #626e82; margin: 0 0 20px 0; font-size: 13px;">ID del juego: -------</p>
+        
+        <canvas id="stage-canvas" width="480" height="360"></canvas>
+        
+        <div class="controls">
+            <button id="green-flag" class="flag">🟢 Iniciar</button>
+            <button id="stop-all" class="stop">🔴 Detener</button>
+            <button id="btn-back" class="btn-back">🐵 Regresar al Editor</button>
+        </div>
     </div>
 
     <script>
-        // Captura el ID desde la barra de direcciones URL
         const urlParams = new URLSearchParams(window.location.search);
         const projectId = urlParams.get('id');
 
         if (projectId) {
-            document.getElementById('player-title').innerText = `Jugando Proyecto en MonkeyMod`;
-            document.getElementById('player-id').innerText = `ID Único del Proyecto: ${projectId}`;
-        } else {
-            document.getElementById('player-title').innerText = `Error: Proyecto no encontrado`;
+            document.getElementById('sub-id').innerText = `ID Único del Proyecto: ${projectId}`;
         }
 
-        // Conecta los botones para interactuar o regresar
-        document.getElementById('edit-back').addEventListener('click', () => {
+        document.getElementById('btn-back').addEventListener('click', () => {
             window.location.href = `edit.html?id=${projectId || ''}`;
         });
 
-        // Inicializar la máquina virtual en modo reproductor básico
+        // Inicialización nativa del reproductor
         const vm = new VirtualMachine();
         const canvas = document.getElementById('stage-canvas');
-        vm.attachStorage(new ScratchStorage());
-        vm.attachRenderer(new ScratchRender(canvas));
-        vm.attachAudioEngine(new AudioEngine());
+        if (window.ScratchStorage) vm.attachStorage(new window.ScratchStorage());
+        if (window.ScratchRender) vm.attachRenderer(new window.ScratchRender(canvas));
+        if (window.AudioEngine) vm.attachAudioEngine(new window.AudioEngine());
 
         document.getElementById('green-flag').addEventListener('click', () => vm.greenFlag());
         document.getElementById('stop-all').addEventListener('click', () => vm.stopAll());
