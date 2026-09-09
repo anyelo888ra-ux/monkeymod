@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐵 MonkeyMod - Mi editor personalizado</title>
+    
+    <!-- Cargamos los motores ya compilados e independientes -->
+    <script src="https://unpkg.com"></script>
+    <script src="https://unpkg.com"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #111111;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        /* Barra superior */
+        header {
+            background-color: #ffab19;
+            color: #111111;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            font-size: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        /* Contenedor principal dividido */
+        .main-container {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 50px);
+        }
+        /* Zona de bloques (Izquierda) */
+        #blocks-container {
+            flex: 2;
+            height: 100%;
+            border-right: 3px solid #ffab19;
+        }
+        /* Zona del escenario (Derecha) */
+        #stage-container {
+            flex: 1;
+            background-color: #222222;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        #stage-canvas {
+            background-color: #ffffff;
+            border: 4px solid #ffab19;
+            border-radius: 8px;
+            width: 480px;
+            height: 360px;
+        }
+        .controls {
+            margin-bottom: 15px;
+        }
+        button {
+            background-color: #ffab19;
+            border: none;
+            color: #111111;
+            padding: 10px 20px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #e59500;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        🐵 MonkeyMod v1.0 - Creado por anyelo888ra-ux
+    </header>
+
+    <div class="main-container">
+        <!-- Editor de bloques -->
+        <div id="blocks-container"></div>
+
+        <!-- Escenario y ejecución -->
+        <div id="stage-container">
+            <div class="controls">
+                <button id="green-flag">🟢 Bandera Verde</button>
+                <button id="stop-all">🔴 Detener</button>
+            </div>
+            <canvas id="stage-canvas" width="480" height="360"></canvas>
+        </div>
+    </div>
+
+    <!-- Caja de herramientas con categorías de bloques básicas de Scratch -->
+    <xml id="toolbox" style="display: none">
+        <category name="Movimiento" colour="#4C97FF">
+            <block type="motion_movesteps">
+                <value name="STEPS">
+                    <shadow type="math_number">
+                        <field name="NUM">10</field>
+                    </shadow>
+                </value>
+            </block>
+            <block type="motion_turnright"></block>
+        </category>
+        <category name="Control" colour="#FFAB19">
+            <block type="control_repeat"></block>
+            <block type="control_forever"></block>
+        </category>
+    </xml>
+
+    <script>
+        // 1. Inicializar la Máquina Virtual (Scratch VM)
+        const vm = new VirtualMachine();
+        
+        // 2. Conectar el Canvas para los gráficos del escenario
+        const canvas = document.getElementById('stage-canvas');
+        vm.attachStorage(new ScratchStorage());
+        vm.attachRenderer(new ScratchRender(canvas));
+        vm.attachAudioEngine(new AudioEngine());
+
+        // 3. Inyectar el espacio de trabajo de bloques visuales
+        const workspace = Blockly.inject('blocks-container', {
+            toolbox: document.getElementById('toolbox'),
+            media: 'https://unpkg.com',
+            zoom: { controls: true, wheel: true, startScale: 0.75 }
+        });
+
+        // 4. Conectar los botones de control de tu UI externa
+        document.getElementById('green-flag').addEventListener('click', () => {
+            vm.greenFlag();
+        });
+        document.getElementById('stop-all').addEventListener('click', () => {
+            vm.stopAll();
+        });
+
+        // Arrancar la máquina virtual
+        vm.start();
+    </script>
+</body>
+</html>
