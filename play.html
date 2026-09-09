@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐵 MonkeyMod - Jugando</title>
+    <!-- Cargamos la VM para que se ejecuten los bloques del juego -->
+    <script src="scratch-vm.js"></script>
+    <style>
+        body { font-family: sans-serif; background-color: #1a1a1a; color: white; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+        h1 { color: #ffab19; margin-bottom: 5px; }
+        #stage-canvas { background-color: #fff; border: 6px solid #00bcd4; border-radius: 8px; width: 480px; height: 360px; }
+        .controls { margin-top: 15px; display: flex; gap: 10px; }
+        button { background-color: #00bcd4; border: none; color: white; padding: 10px 20px; font-weight: bold; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        .btn-back { background-color: #555; }
+    </style>
+</head>
+<body>
+
+    <h1 id="player-title">Cargando Proyecto...</h1>
+    <p id="player-id" style="color: #888; margin-top: 0;">ID: ---------</p>
+
+    <canvas id="stage-canvas" width="480" height="360"></canvas>
+
+    <div class="controls">
+        <button id="green-flag">🟢 Iniciar</button>
+        <button id="stop-all">🔴 Detener</button>
+        <button id="edit-back" class="btn-back">🐵 Volver al Editor</button>
+    </div>
+
+    <script>
+        // Captura el ID desde la barra de direcciones URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const projectId = urlParams.get('id');
+
+        if (projectId) {
+            document.getElementById('player-title').innerText = `Jugando Proyecto en MonkeyMod`;
+            document.getElementById('player-id').innerText = `ID Único del Proyecto: ${projectId}`;
+        } else {
+            document.getElementById('player-title').innerText = `Error: Proyecto no encontrado`;
+        }
+
+        // Conecta los botones para interactuar o regresar
+        document.getElementById('edit-back').addEventListener('click', () => {
+            window.location.href = `edit.html?id=${projectId || ''}`;
+        });
+
+        // Inicializar la máquina virtual en modo reproductor básico
+        const vm = new VirtualMachine();
+        const canvas = document.getElementById('stage-canvas');
+        vm.attachStorage(new ScratchStorage());
+        vm.attachRenderer(new ScratchRender(canvas));
+        vm.attachAudioEngine(new AudioEngine());
+
+        document.getElementById('green-flag').addEventListener('click', () => vm.greenFlag());
+        document.getElementById('stop-all').addEventListener('click', () => vm.stopAll());
+        vm.start();
+    </script>
+</body>
+</html>
