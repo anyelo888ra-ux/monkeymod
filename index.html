@@ -3,147 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🐵 MonkeyMod - Mi editor personalizado</title>
-    
-    <!-- Cargamos los motores ya compilados e independientes -->
-    <script src="https://unpkg.com"></script>
-    <script src="https://unpkg.com"></script>
-
+    <title>🐵 MonkeyMod - Programación con capacidades infinitas</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
             background-color: #111111;
-            color: #ffffff;
+            color: white;
             margin: 0;
             padding: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
         }
-        /* Barra superior */
-        header {
-            background-color: #ffab19;
-            color: #111111;
-            padding: 10px 20px;
+        /* Navbar estilo PenguinMod */
+        nav {
+            background-color: #00bcd4;
+            padding: 15px 30px;
             display: flex;
+            justify-content: space-between;
             align-items: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        .logo {
+            font-size: 24px;
             font-weight: bold;
-            font-size: 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            color: white;
+            text-decoration: none;
         }
-        /* Contenedor principal dividido */
-        .main-container {
+        .search-box {
             display: flex;
-            flex: 1;
-            height: calc(100vh - 50px);
+            gap: 5px;
         }
-        /* Zona de bloques (Izquierda) */
-        #blocks-container {
-            flex: 2;
-            height: 100%;
-            border-right: 3px solid #ffab19;
+        .search-box input {
+            padding: 8px;
+            border-radius: 4px;
+            border: none;
         }
-        /* Zona del escenario (Derecha) */
-        #stage-container {
-            flex: 1;
-            background-color: #222222;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        #stage-canvas {
-            background-color: #ffffff;
-            border: 4px solid #ffab19;
-            border-radius: 8px;
-            width: 480px;
-            height: 360px;
-        }
-        .controls {
-            margin-bottom: 15px;
-        }
-        button {
+        .search-box button {
             background-color: #ffab19;
             border: none;
-            color: #111111;
-            padding: 10px 20px;
-            font-weight: bold;
-            border-radius: 5px;
+            padding: 8px 15px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 16px;
+            font-weight: bold;
         }
-        button:hover {
+        /* Contenido Principal */
+        .hero {
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(180deg, #00bcd4 0%, #111111 100%);
+        }
+        .hero h1 {
+            font-size: 45px;
+            margin-bottom: 10px;
+        }
+        .hero p {
+            font-size: 20px;
+            color: #e0e0e0;
+        }
+        .btn-try {
+            background-color: #ffab19;
+            color: #111111;
+            padding: 15px 40px;
+            font-size: 22px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(255, 171, 25, 0.4);
+        }
+        .btn-try:hover {
             background-color: #e59500;
+        }
+        /* Sección de Video */
+        .video-section {
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+        .video-container {
+            width: 100%;
+            max-width: 560px;
+            aspect-ratio: 16/9;
+            border: 4px solid #ffab19;
+            border-radius: 8px;
+            overflow: hidden;
         }
     </style>
 </head>
 <body>
 
-    <header>
-        🐵 MonkeyMod v1.0 - Creado por anyelo888ra-ux
-    </header>
+    <nav>
+        <a href="index.html" class="logo">🐵 MonkeyMod</a>
+        <form class="search-box" action="search.html" method="GET">
+            <input type="text" name="q" placeholder="Buscar proyectos..." required>
+            <button type="submit">Buscar</button>
+        </form>
+    </nav>
 
-    <div class="main-container">
-        <!-- Editor de bloques -->
-        <div id="blocks-container"></div>
+    <div class="hero">
+        <h1>Programación basada en bloques con capacidades infinitas</h1>
+        <p>Creado usando Scratch y optimizado para la web.</p>
+        <a href="edit.html" class="btn-try">¡Pruébalo!</a>
+    </div>
 
-        <!-- Escenario y ejecución -->
-        <div id="stage-container">
-            <div class="controls">
-                <button id="green-flag">🟢 Bandera Verde</button>
-                <button id="stop-all">🔴 Detener</button>
-            </div>
-            <canvas id="stage-canvas" width="480" height="360"></canvas>
+    <div class="video-section">
+        <div class="video-container">
+            <!-- Ponemos un video de ejemplo, luego puedes cambiar el ID dQw4w9WgXcQ por el tuyo -->
+            <iframe width="100%" height="100%" src="https://youtube.com" frameborder="0" allowfullscreen></iframe>
         </div>
     </div>
 
-    <!-- Caja de herramientas con categorías de bloques básicas de Scratch -->
-    <xml id="toolbox" style="display: none">
-        <category name="Movimiento" colour="#4C97FF">
-            <block type="motion_movesteps">
-                <value name="STEPS">
-                    <shadow type="math_number">
-                        <field name="NUM">10</field>
-                    </shadow>
-                </value>
-            </block>
-            <block type="motion_turnright"></block>
-        </category>
-        <category name="Control" colour="#FFAB19">
-            <block type="control_repeat"></block>
-            <block type="control_forever"></block>
-        </category>
-    </xml>
-
-    <script>
-        // 1. Inicializar la Máquina Virtual (Scratch VM)
-        const vm = new VirtualMachine();
-        
-        // 2. Conectar el Canvas para los gráficos del escenario
-        const canvas = document.getElementById('stage-canvas');
-        vm.attachStorage(new ScratchStorage());
-        vm.attachRenderer(new ScratchRender(canvas));
-        vm.attachAudioEngine(new AudioEngine());
-
-        // 3. Inyectar el espacio de trabajo de bloques visuales
-        const workspace = Blockly.inject('blocks-container', {
-            toolbox: document.getElementById('toolbox'),
-            media: 'https://unpkg.com',
-            zoom: { controls: true, wheel: true, startScale: 0.75 }
-        });
-
-        // 4. Conectar los botones de control de tu UI externa
-        document.getElementById('green-flag').addEventListener('click', () => {
-            vm.greenFlag();
-        });
-        document.getElementById('stop-all').addEventListener('click', () => {
-            vm.stopAll();
-        });
-
-        // Arrancar la máquina virtual
-        vm.start();
-    </script>
 </body>
 </html>
