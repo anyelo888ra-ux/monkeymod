@@ -271,7 +271,7 @@
     <header>
         <div class="title">
             🐵 MonkeyMod <span class="badge">v2.0 Nativo</span>
-            <span id="display-id" class="project-id-display">ID: -------</span>
+            <span id="display-id" class="project-id-display">Proyecto ID: -------</span>
         </div>
         <div style="display: flex; gap: 10px;">
             <button class="btn-inject" id="btn-inject">➕ Inyectar Bloque (JS)</button>
@@ -285,10 +285,10 @@
         <!-- 1. BARRA DE HERRAMIENTAS -->
         <div class="sidebar">
             <div class="category-tabs">
-                <div class="tab active" onclick="filterCategory('all')">Todos</div>
-                <div class="tab" onclick="filterCategory('motion')">Movimiento</div>
-                <div class="tab" onclick="filterCategory('control')">Control</div>
-                <div class="tab" onclick="filterCategory('custom')">Inyectados</div>
+                <div class="tab active" onclick="filterCategory('all', this)">Todos</div>
+                <div class="tab" onclick="filterCategory('motion', this)">Movimiento</div>
+                <div class="tab" onclick="filterCategory('control', this)">Control</div>
+                <div class="tab" onclick="filterCategory('custom', this)">Inyectados</div>
             </div>
 
             <div class="toolbox" id="monkey-toolbox">
@@ -342,159 +342,217 @@
     </div>
 
     <script>
-        // Función para generar un ID aleatorio único
-        function generateUniqueId() {
-            return 'proj_' + Math.random().toString(36).substring(2, 10);
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- MANEJO DE IDENTIFICADORES WEB ---
+            const urlParams = new URLSearchParams(window.location.search);
+            let projectId = urlParams.get('id');
 
-        // Gestión de la URL e ID del Proyecto
-        const urlParams = new URLSearchParams(window.location.search);
-        let projectId = urlParams.get('id');
-
-        if (!projectId) {
-            projectId = generateUniqueId();
-            const newUrl = `${window.location.pathname}?id=${projectId}`;
-            window.history.replaceState({ path: newUrl }, '', newUrl);
-        }
-
-        document.getElementById('display-id').innerText = `ID: ${projectId}`;
-
-        // Redirección al modo jugador preservando la ID
-        document.getElementById('btn-play').addEventListener('click', () => {
-            window.location.href = `play.html?id=${projectId}`;
-        });
-
-        // --- SISTEMA DRAG AND DROP NATIVO ---
-        const monkey = document.getElementById('monkey-sprite');
-        const toolbox = document.getElementById('monkey-toolbox');
-        const workspace = document.getElementById('monkey-workspace');
-        const customBlocksArea = document.getElementById('custom-blocks-area');
-        
-        let posX = 130;
-        let posY = 100;
-        let rotation = 0;
-        let draggedElement = null;
-
-        document.addEventListener('dragstart', (e) => {
-            const block = e.target.closest('.monkey-block');
-            if (block) {
-                draggedElement = block;
-                e.dataTransfer.setData('text/plain', '');
-            }
-        });
-
-        workspace.addEventListener('dragover', (e) => {
-            e.preventDefault();
-        });
-
-        workspace.addEventListener('drop', (e) => {
-            e.preventDefault();
-            if (draggedElement) {
-                if (!workspace.contains(draggedElement)) {
-                    const clone = draggedElement.cloneNode(true);
-                    const originalInput = draggedElement.querySelector('input');
-                    if (originalInput) {
-                        clone.querySelector('input').value = originalInput.value;
-                    }
-                    workspace.appendChild(clone);
-                } else {
-                    workspace.appendChild(draggedElement);
-                }
-                draggedElement = null;
-            }
-        });
-
-        function removeBlock(el) {
-            const block = el.closest('.monkey-block');
-            if (block && workspace.contains(block)) {
-                block.remove();
-            }
-        }
-
-        // --- INYECCIÓN DINÁMICA DE BLOQUES (JS/HTML) ---
-        document.getElementById('btn-inject').addEventListener('click', () => {
-            const blockName = prompt("Nombre de tu nuevo bloque:", "Efecto Salto");
-            if (!blockName) return;
-
-            const jsCode = prompt(
-                "Escribe el código JavaScript a ejecutar:\nVariables disponibles: posX, posY, rotation, monkey\nEjemplo:",
-                "posY -= 30; monkey.style.top = posY + 'px';"
-            );
-            if (!jsCode) return;
-
-            const newBlock = document.createElement('div');
-            newBlock.className = 'monkey-block block-custom';
-            newBlock.draggable = true;
-            newBlock.innerHTML = `<span>⚙️ ${blockName}</span><span class="btn-delete-block" onclick="removeBlock(this)">✕</span>`;
-            newBlock.setAttribute('data-script', jsCode);
-
-            customBlocksArea.appendChild(newBlock);
-            alert(`¡Bloque "${blockName}" inyectado correctamente!`);
-        });
-
-        // --- MOTOR DE EJECUCIÓN SCRIPT ---
-        document.getElementById('btn-run').addEventListener('click', () => {
-            const activeBlocks = workspace.querySelectorAll('.monkey-block');
-            if (activeBlocks.length === 0) {
-                alert("¡Arrastra al menos un bloque al centro primero!");
-                return;
+            if (!projectId) {
+                projectId = Math.floor(10000000 + Math.random() * 90000000).toString();
+                window.history.replaceState({}, '', `edit.html?id=${projectId}`);
             }
 
-            activeBlocks.forEach((block) => {
-                const action = block.getAttribute('data-action');
-                const customScript = block.getAttribute('data-script');
+            document.getElementById('display-id').innerText = `Proyecto ID: ${projectId}`;
 
-                if (customScript) {
-                    try {
-                        const runCustom = new Function('posX', 'posY', 'rotation', 'monkey', customScript);
-                        runCustom(posX, posY, rotation, monkey);
-                    } catch (err) {
-                        console.error("Error en bloque personalizado:", err);
-                    }
-                } else {
-                    if (action === 'move') {
-                        const steps = parseInt(block.querySelector('input').value) || 10;
-                        posX += steps;
-                        if (posX > 260) posX = 0;
-                        monkey.style.left = posX + 'px';
-                    } else if (action === 'rotate') {
-                        const deg = parseInt(block.querySelector('input').value) || 15;
-                        rotation += deg;
-                        monkey.style.transform = `rotate(${rotation}deg)`;
-                    } else if (action === 'jump') {
-                        posX = Math.floor(Math.random() * 240);
-                        posY = Math.floor(Math.random() * 180);
-                        monkey.style.left = posX + 'px';
-                        monkey.style.top = posY + 'px';
-                    } else if (action === 'reset') {
-                        posX = 130;
-                        posY = 100;
-                        rotation = 0;
-                        monkey.style.left = posX + 'px';
-                        monkey.style.top = posY + 'px';
-                        monkey.style.transform = `rotate(0deg)`;
-                    }
+            // --- REDIRECCIÓN Y GUARDADO PREVIO AL MODO JUGADOR ---
+            document.getElementById('btn-play').addEventListener('click', () => {
+                saveProjectData();
+                window.location.href = `play.html?id=${projectId}`;
+            });
+
+            // --- SISTEMA DRAG AND DROP NATIVO ---
+            const monkey = document.getElementById('monkey-sprite');
+            const workspace = document.getElementById('monkey-workspace');
+            const customBlocksArea = document.getElementById('custom-blocks-area');
+            
+            let posX = 130;
+            let posY = 100;
+            let rotation = 0;
+            let draggedElement = null;
+
+            document.addEventListener('dragstart', (e) => {
+                const block = e.target.closest('.monkey-block');
+                if (block) {
+                    draggedElement = block;
+                    e.dataTransfer.setData('text/plain', '');
                 }
             });
-        });
 
-        document.getElementById('btn-clear').addEventListener('click', () => {
-            workspace.innerHTML = '';
-        });
+            workspace.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
 
-        function filterCategory(cat) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
-
-            const groups = document.querySelectorAll('.block-group');
-            groups.forEach(group => {
-                if (cat === 'all' || group.getAttribute('data-cat') === cat) {
-                    group.style.display = 'block';
-                } else {
-                    group.style.display = 'none';
+            workspace.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (draggedElement) {
+                    if (!workspace.contains(draggedElement)) {
+                        const clone = draggedElement.cloneNode(true);
+                        const originalInput = draggedElement.querySelector('input');
+                        if (originalInput) {
+                            clone.querySelector('input').value = originalInput.value;
+                        }
+                        workspace.appendChild(clone);
+                    } else {
+                        workspace.appendChild(draggedElement);
+                    }
+                    draggedElement = null;
+                    saveProjectData();
                 }
             });
-        }
+
+            window.removeBlock = function(el) {
+                const block = el.closest('.monkey-block');
+                if (block && workspace.contains(block)) {
+                    block.remove();
+                    saveProjectData();
+                }
+            };
+
+            // --- INYECCIÓN DINÁMICA DE BLOQUES (JS/HTML) ---
+            document.getElementById('btn-inject').addEventListener('click', () => {
+                const blockName = prompt("Nombre de tu nuevo bloque:", "Efecto Salto");
+                if (!blockName) return;
+
+                const jsCode = prompt(
+                    "Escribe el código JavaScript a ejecutar:\nVariables disponibles: posX, posY, rotation, monkey\nEjemplo:",
+                    "posY -= 30; monkey.style.top = posY + 'px';"
+                );
+                if (!jsCode) return;
+
+                const newBlock = document.createElement('div');
+                newBlock.className = 'monkey-block block-custom';
+                newBlock.draggable = true;
+                newBlock.innerHTML = `<span>⚙️ ${blockName}</span><span class="btn-delete-block" onclick="removeBlock(this)">✕</span>`;
+                newBlock.setAttribute('data-script', jsCode);
+                newBlock.setAttribute('data-name', blockName);
+
+                customBlocksArea.appendChild(newBlock);
+                alert(`¡Bloque "${blockName}" inyectado correctamente!`);
+            });
+
+            // --- GUARDAR ESTADO DEL SCRIPT Y PROYECTO ---
+            function saveProjectData() {
+                const activeBlocks = workspace.querySelectorAll('.monkey-block');
+                const blocksData = [];
+
+                activeBlocks.forEach(block => {
+                    const action = block.getAttribute('data-action');
+                    const script = block.getAttribute('data-script');
+                    const inputElem = block.querySelector('input');
+                    const value = inputElem ? inputElem.value : null;
+
+                    blocksData.push({ action, script, value });
+                });
+
+                localStorage.setItem(`monkey_project_${projectId}`, JSON.stringify(blocksData));
+            }
+
+            // --- RESTAURAR SI EXISTEN DATOS PREVIOS ---
+            function loadProjectData() {
+                const dataRaw = localStorage.getItem(`monkey_project_${projectId}`);
+                if (!dataRaw) return;
+
+                try {
+                    const blocksData = JSON.parse(dataRaw);
+                    workspace.innerHTML = '';
+
+                    blocksData.forEach(item => {
+                        let sourceBlock = null;
+                        if (item.action) {
+                            sourceBlock = document.querySelector(`.toolbox [data-action="${item.action}"]`);
+                        }
+                        if (sourceBlock) {
+                            const clone = sourceBlock.cloneNode(true);
+                            if (item.value !== null && clone.querySelector('input')) {
+                                clone.querySelector('input').value = item.value;
+                            }
+                            workspace.appendChild(clone);
+                        } else if (item.script) {
+                            const newBlock = document.createElement('div');
+                            newBlock.className = 'monkey-block block-custom';
+                            newBlock.draggable = true;
+                            newBlock.innerHTML = `<span>⚙️ Bloque Inyectado</span><span class="btn-delete-block" onclick="removeBlock(this)">✕</span>`;
+                            newBlock.setAttribute('data-script', item.script);
+                            workspace.appendChild(newBlock);
+                        }
+                    });
+                } catch(e) {
+                    console.error("Error al cargar datos del proyecto:", e);
+                }
+            }
+
+            // --- MOTOR DE EJECUCIÓN SCRIPT ---
+            function executeScript() {
+                const activeBlocks = workspace.querySelectorAll('.monkey-block');
+                if (activeBlocks.length === 0) {
+                    alert("¡Arrastra al menos un bloque al centro primero!");
+                    return;
+                }
+
+                activeBlocks.forEach((block) => {
+                    const action = block.getAttribute('data-action');
+                    const customScript = block.getAttribute('data-script');
+
+                    if (customScript) {
+                        try {
+                            const runCustom = new Function('posX', 'posY', 'rotation', 'monkey', customScript);
+                            runCustom(posX, posY, rotation, monkey);
+                        } catch (err) {
+                            console.error("Error en bloque personalizado:", err);
+                        }
+                    } else {
+                        if (action === 'move') {
+                            const steps = parseInt(block.querySelector('input').value) || 10;
+                            posX += steps;
+                            if (posX > 260) posX = 0;
+                            monkey.style.left = posX + 'px';
+                        } else if (action === 'rotate') {
+                            const deg = parseInt(block.querySelector('input').value) || 15;
+                            rotation += deg;
+                            monkey.style.transform = `rotate(${rotation}deg)`;
+                        } else if (action === 'jump') {
+                            posX = Math.floor(Math.random() * 240);
+                            posY = Math.floor(Math.random() * 180);
+                            monkey.style.left = posX + 'px';
+                            monkey.style.top = posY + 'px';
+                        } else if (action === 'reset') {
+                            posX = 130;
+                            posY = 100;
+                            rotation = 0;
+                            monkey.style.left = posX + 'px';
+                            monkey.style.top = posY + 'px';
+                            monkey.style.transform = `rotate(0deg)`;
+                        }
+                    }
+                });
+            }
+
+            document.getElementById('btn-run').addEventListener('click', () => {
+                saveProjectData();
+                executeScript();
+            });
+
+            document.getElementById('btn-clear').addEventListener('click', () => {
+                workspace.innerHTML = '';
+                saveProjectData();
+            });
+
+            window.filterCategory = function(cat, tabElement) {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                if (tabElement) tabElement.classList.add('active');
+
+                const groups = document.querySelectorAll('.block-group');
+                groups.forEach(group => {
+                    if (cat === 'all' || group.getAttribute('data-cat') === cat) {
+                        group.style.display = 'block';
+                    } else {
+                        group.style.display = 'none';
+                    }
+                });
+            };
+
+            loadProjectData();
+        });
     </script>
 </body>
 </html>
