@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>MonkeyMod - Panel Developer</title>
+    <style>
+        body { background-color: #1e1e24; color: white; font-family: sans-serif; padding: 40px; }
+        .container { max-width: 600px; margin: 0 auto; background: #2a2a32; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        h1 { color: #ff9f1c; margin-top: 0; }
+        .form-group { margin-bottom: 15px; display: flex; flex-direction: column; }
+        label { margin-bottom: 5px; font-weight: bold; }
+        input { padding: 10px; border-radius: 6px; border: 1px solid #444; background: #1e1e24; color: white; }
+        .btn { background: #4cc9f0; color: #1e1e24; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 10px; }
+        .result-box { margin-top: 20px; padding: 15px; background: #1e1e24; border-left: 4px solid #ff9f1c; border-radius: 4px; display: none; }
+        .secret-text { color: #f72585; font-family: monospace; word-break: break-all; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🚀 Registrar Nueva App OAuth</h1>
+    <p>Crea las credenciales de tu proyecto para conectar el inicio de sesión de MonkeyMod.</p>
+    
+    <div class="form-group">
+        <label for="appName">Nombre del Proyecto:</label>
+        <input type="text" id="appName" placeholder="Ej. Mi Juego de Bloques">
+    </div>
+    
+    <div class="form-group">
+        <label for="appUrl">Callback URL (URL de redirección):</label>
+        <input type="text" id="appUrl" placeholder="https://tuweb.com">
+    </div>
+    
+    <button onclick="generateAppCredentials()" class="btn">Generar ID Aleatorio</button>
+
+    <div id="result" class="result-box">
+        <h3>✅ ¡Aplicación Registrada!</h3>
+        <p><strong>Client ID (Aleatorio):</strong> <span id="displayClientId" style="color: #4cc9f0; font-family: monospace;"></span></p>
+        <p><strong>Client Secret:</strong> <span id="displayClientSecret" class="secret-text"></span></p>
+        <p style="color: #aaa; font-size: 12px; margin-top: 10px;">⚠️ Copia el Secret ahora. Por seguridad, no se volverá a mostrar en pantalla.</p>
+    </div>
+</div>
+
+<script>
+    async function generateAppCredentials() {
+        const name = document.getElementById('appName').value;
+        const redirectUri = document.getElementById('appUrl').value;
+
+        if (!name || !redirectUri) {
+            alert("Por favor, rellena todos los campos obligatorios.");
+            return;
+        }
+
+        // Fabricación del ID aleatorio seguro mezclando letras y números
+        const randomId = 'mm_id_' + Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10);
+        const randomSecret = 'mm_sec_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+        // Guardar la configuración en tu tabla de Supabase (Asegúrate de inicializar tu cliente 'supabase' arriba)
+        const { error } = await supabase
+            .from('registered_apps')
+            .insert([{ client_id: randomId, client_secret: randomSecret, app_name: name, redirect_uri: redirectUri }]);
+
+        if (!error) {
+            document.getElementById('displayClientId').innerText = randomId;
+            document.getElementById('displayClientSecret').innerText = randomSecret;
+            document.getElementById('result').style.display = 'block';
+        } else {
+            alert("Error de sincronización con Supabase: " + error.message);
+        }
+    }
+</script>
+</body>
+</html>
