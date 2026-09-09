@@ -71,11 +71,11 @@
         }
 
         /* Botones de acción */
-        button { 
+        button, select { 
             background-color: var(--accent-orange); 
             border: none; 
             color: #111; 
-            padding: 8px 14px; 
+            padding: 8px 12px; 
             font-weight: bold; 
             border-radius: 6px; 
             cursor: pointer; 
@@ -86,7 +86,7 @@
             gap: 6px;
         }
 
-        button:hover { 
+        button:hover, select:hover { 
             filter: brightness(1.15);
             transform: translateY(-1px);
         }
@@ -95,6 +95,14 @@
             transform: translateY(0);
         }
 
+        select {
+            background-color: #232834;
+            color: white;
+            border: 1px solid var(--border-color);
+            outline: none;
+        }
+
+        .btn-file { background-color: #6c757d; color: white; }
         .btn-inject { background-color: #00bcd4; color: white; }
         .btn-run { background-color: var(--success-green); color: white; }
         .btn-play { background-color: #4c97ff; color: white; }
@@ -222,12 +230,12 @@
         }
 
         .workspace:empty::before { 
-            content: "Arrastra los bloques aquí para construir tu script..."; 
+            content: attr(data-placeholder); 
             color: #4f5a70; 
             font-size: 15px; 
             position: absolute; 
             top: 45%; 
-            left: 25%; 
+            left: 20%; 
             pointer-events: none; 
         }
 
@@ -254,7 +262,6 @@
             box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
         }
         
-        /* Personaje Principal: El Mono */
         #monkey-sprite { 
             font-size: 40px; 
             position: absolute; 
@@ -270,14 +277,22 @@
 
     <header>
         <div class="title">
-            🐵 MonkeyMod <span class="badge">v2.0 Nativo</span>
-            <span id="display-id" class="project-id-display">Proyecto ID: -------</span>
+            🐵 MonkeyMod <span class="badge">v2.0</span>
+            <span id="display-id" class="project-id-display">ID: -------</span>
         </div>
-        <div style="display: flex; gap: 10px;">
-            <button class="btn-inject" id="btn-inject">➕ Inyectar Bloque (JS)</button>
-            <button class="btn-run" id="btn-run">🟢 Ejecutar</button>
-            <button class="btn-play" id="btn-play">▶️ Modo Jugador</button>
-            <button class="btn-clear" id="btn-clear">🔴 Limpiar</button>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <select id="lang-select">
+                <option value="es">🇪🇸 Español</option>
+                <option value="en">🇺🇸 English</option>
+            </select>
+            <button class="btn-file" id="btn-save">💾 <span data-i18n="save">Guardar (.monkey)</span></button>
+            <button class="btn-file" id="btn-load">📂 <span data-i18n="load">Cargar (.monkey)</span></button>
+            <input type="file" id="file-input" accept=".monkey" style="display: none;">
+            
+            <button class="btn-inject" id="btn-inject">➕ <span data-i18n="inject">Inyectar (JS)</span></button>
+            <button class="btn-run" id="btn-run">🟢 <span data-i18n="run">Ejecutar</span></button>
+            <button class="btn-play" id="btn-play">▶️ <span data-i18n="play">Modo Jugador</span></button>
+            <button class="btn-clear" id="btn-clear">🔴 <span data-i18n="clear">Limpiar</span></button>
         </div>
     </header>
 
@@ -285,65 +300,134 @@
         <!-- 1. BARRA DE HERRAMIENTAS -->
         <div class="sidebar">
             <div class="category-tabs">
-                <div class="tab active" onclick="filterCategory('all', this)">Todos</div>
-                <div class="tab" onclick="filterCategory('motion', this)">Movimiento</div>
-                <div class="tab" onclick="filterCategory('control', this)">Control</div>
-                <div class="tab" onclick="filterCategory('custom', this)">Inyectados</div>
+                <div class="tab active" onclick="filterCategory('all', this)" data-i18n="tab_all">Todos</div>
+                <div class="tab" onclick="filterCategory('motion', this)" data-i18n="tab_motion">Movimiento</div>
+                <div class="tab" onclick="filterCategory('control', this)" data-i18n="tab_control">Control</div>
+                <div class="tab" onclick="filterCategory('custom', this)" data-i18n="tab_custom">Inyectados</div>
             </div>
 
             <div class="toolbox" id="monkey-toolbox">
                 <!-- Bloques de Movimiento -->
                 <div class="block-group" data-cat="motion">
-                    <div class="toolbox-title">Movimiento</div>
+                    <div class="toolbox-title" data-i18n="cat_motion">Movimiento</div>
                     <div class="monkey-block block-motion" draggable="true" data-action="move">
-                        <span>Mover <input type="number" class="block-input" value="10" onclick="event.stopPropagation()"> pasos</span>
+                        <span><span data-i18n="blk_move">Mover</span> <input type="number" class="block-input" value="10" onclick="event.stopPropagation()"> <span data-i18n="blk_steps">pasos</span></span>
                         <span class="btn-delete-block" onclick="removeBlock(this)">✕</span>
                     </div>
                     <div class="monkey-block block-motion" draggable="true" data-action="rotate">
-                        <span>Girar 🔄 <input type="number" class="block-input" value="15" onclick="event.stopPropagation()"> grados</span>
+                        <span><span data-i18n="blk_rotate">Girar</span> 🔄 <input type="number" class="block-input" value="15" onclick="event.stopPropagation()"> <span data-i18n="blk_degrees">grados</span></span>
                         <span class="btn-delete-block" onclick="removeBlock(this)">✕</span>
                     </div>
                     <div class="monkey-block block-motion" draggable="true" data-action="jump">
-                        <span>Ir a posición aleatoria</span>
+                        <span data-i18n="blk_jump">Ir a posición aleatoria</span>
                         <span class="btn-delete-block" onclick="removeBlock(this)">✕</span>
                     </div>
                 </div>
 
                 <!-- Bloques de Control -->
                 <div class="block-group" data-cat="control">
-                    <div class="toolbox-title">Control</div>
+                    <div class="toolbox-title" data-i18n="cat_control">Control</div>
                     <div class="monkey-block block-control" draggable="true" data-action="reset">
-                        <span>Reiniciar posición</span>
+                        <span data-i18n="blk_reset">Reiniciar posición</span>
                         <span class="btn-delete-block" onclick="removeBlock(this)">✕</span>
                     </div>
                 </div>
 
                 <!-- Bloques Inyectados -->
                 <div class="block-group" data-cat="custom">
-                    <div class="toolbox-title">Bloques Inyectados</div>
+                    <div class="toolbox-title" data-i18n="cat_custom">Bloques Inyectados</div>
                     <div id="custom-blocks-area" style="display:flex; flex-direction:column; gap:10px;"></div>
                 </div>
             </div>
         </div>
 
         <!-- 2. ESPACIO DE TRABAJO -->
-        <div class="workspace" id="monkey-workspace"></div>
+        <div class="workspace" id="monkey-workspace" data-placeholder="Arrastra los bloques aquí para construir tu script..."></div>
 
         <!-- 3. ESCENARIO -->
         <div class="stage-area">
-            <div class="toolbox-title" style="width: 100%;">Escenario</div>
+            <div class="toolbox-title" style="width: 100%;" data-i18n="stage_title">Escenario</div>
             <div class="canvas-simulation">
                 <div id="monkey-sprite">🐵</div>
             </div>
-            <div style="color: #626e82; font-size: 12px; text-align: center;">
+            <div style="color: #626e82; font-size: 12px; text-align: center;" data-i18n="stage_help">
                 Arrastra los bloques verticalmente al espacio de trabajo central y presiona "Ejecutar".
             </div>
         </div>
     </div>
 
     <script>
+        const i18n = {
+            es: {
+                save: "Guardar (.monkey)",
+                load: "Cargar (.monkey)",
+                inject: "Inyectar (JS)",
+                run: "Ejecutar",
+                play: "Modo Jugador",
+                clear: "Limpiar",
+                tab_all: "Todos",
+                tab_motion: "Movimiento",
+                tab_control: "Control",
+                tab_custom: "Inyectados",
+                cat_motion: "Movimiento",
+                cat_control: "Control",
+                cat_custom: "Bloques Inyectados",
+                blk_move: "Mover",
+                blk_steps: "pasos",
+                blk_rotate: "Girar",
+                blk_degrees: "grados",
+                blk_jump: "Ir a posición aleatoria",
+                blk_reset: "Reiniciar posición",
+                stage_title: "Escenario",
+                stage_help: "Arrastra los bloques verticalmente al espacio de trabajo central y presiona 'Ejecutar'.",
+                placeholder: "Arrastra los bloques aquí para construir tu script...",
+                prompt_name: "Nombre de tu nuevo bloque:",
+                prompt_code: "Escribe el código JavaScript a ejecutar:\nVariables: posX, posY, rotation, monkey"
+            },
+            en: {
+                save: "Save (.monkey)",
+                load: "Load (.monkey)",
+                inject: "Inject (JS)",
+                run: "Run",
+                play: "Player Mode",
+                clear: "Clear",
+                tab_all: "All",
+                tab_motion: "Motion",
+                tab_control: "Control",
+                tab_custom: "Injected",
+                cat_motion: "Motion",
+                cat_control: "Control",
+                cat_custom: "Injected Blocks",
+                blk_move: "Move",
+                blk_steps: "steps",
+                blk_rotate: "Turn",
+                blk_degrees: "degrees",
+                blk_jump: "Go to random position",
+                blk_reset: "Reset position",
+                stage_title: "Stage",
+                stage_help: "Drag blocks vertically into the central workspace and click 'Run'.",
+                placeholder: "Drag blocks here to build your script...",
+                prompt_name: "New block name:",
+                prompt_code: "Write the JavaScript code to execute:\nVariables: posX, posY, rotation, monkey"
+            }
+        };
+
+        let currentLang = 'es';
+
+        function updateLanguage(lang) {
+            currentLang = lang;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[lang][key]) {
+                    el.innerText = i18n[lang][key];
+                }
+            });
+            const ws = document.getElementById('monkey-workspace');
+            ws.setAttribute('data-placeholder', i18n[lang].placeholder);
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
-            // --- MANEJO DE IDENTIFICADORES WEB ---
+            // --- ID DE PROYECTO (NUMÉRICO 8 DÍGITOS) ---
             const urlParams = new URLSearchParams(window.location.search);
             let projectId = urlParams.get('id');
 
@@ -352,15 +436,20 @@
                 window.history.replaceState({}, '', `edit.html?id=${projectId}`);
             }
 
-            document.getElementById('display-id').innerText = `Proyecto ID: ${projectId}`;
+            document.getElementById('display-id').innerText = `ID: ${projectId}`;
 
-            // --- REDIRECCIÓN Y GUARDADO PREVIO AL MODO JUGADOR ---
+            // --- SISTEMA DE IDIOMA ---
+            document.getElementById('lang-select').addEventListener('change', (e) => {
+                updateLanguage(e.target.value);
+            });
+
+            // --- REDIRECCIÓN AL MODO JUGADOR ---
             document.getElementById('btn-play').addEventListener('click', () => {
                 saveProjectData();
                 window.location.href = `play.html?id=${projectId}`;
             });
 
-            // --- SISTEMA DRAG AND DROP NATIVO ---
+            // --- DRAG AND DROP ---
             const monkey = document.getElementById('monkey-sprite');
             const workspace = document.getElementById('monkey-workspace');
             const customBlocksArea = document.getElementById('custom-blocks-area');
@@ -378,9 +467,7 @@
                 }
             });
 
-            workspace.addEventListener('dragover', (e) => {
-                e.preventDefault();
-            });
+            workspace.addEventListener('dragover', (e) => e.preventDefault());
 
             workspace.addEventListener('drop', (e) => {
                 e.preventDefault();
@@ -388,9 +475,7 @@
                     if (!workspace.contains(draggedElement)) {
                         const clone = draggedElement.cloneNode(true);
                         const originalInput = draggedElement.querySelector('input');
-                        if (originalInput) {
-                            clone.querySelector('input').value = originalInput.value;
-                        }
+                        if (originalInput) clone.querySelector('input').value = originalInput.value;
                         workspace.appendChild(clone);
                     } else {
                         workspace.appendChild(draggedElement);
@@ -408,13 +493,13 @@
                 }
             };
 
-            // --- INYECCIÓN DINÁMICA DE BLOQUES (JS/HTML) ---
+            // --- INYECCIÓN JS ---
             document.getElementById('btn-inject').addEventListener('click', () => {
-                const blockName = prompt("Nombre de tu nuevo bloque:", "Efecto Salto");
+                const blockName = prompt(i18n[currentLang].prompt_name, "Efecto Salto");
                 if (!blockName) return;
 
                 const jsCode = prompt(
-                    "Escribe el código JavaScript a ejecutar:\nVariables disponibles: posX, posY, rotation, monkey\nEjemplo:",
+                    i18n[currentLang].prompt_code,
                     "posY -= 30; monkey.style.top = posY + 'px';"
                 );
                 if (!jsCode) return;
@@ -427,67 +512,98 @@
                 newBlock.setAttribute('data-name', blockName);
 
                 customBlocksArea.appendChild(newBlock);
-                alert(`¡Bloque "${blockName}" inyectado correctamente!`);
             });
 
-            // --- GUARDAR ESTADO DEL SCRIPT Y PROYECTO ---
-            function saveProjectData() {
+            // --- GUARDAR Y CARGAR ARCHIVOS .MONKEY ---
+            function getProjectPayload() {
                 const activeBlocks = workspace.querySelectorAll('.monkey-block');
                 const blocksData = [];
-
                 activeBlocks.forEach(block => {
                     const action = block.getAttribute('data-action');
                     const script = block.getAttribute('data-script');
                     const inputElem = block.querySelector('input');
                     const value = inputElem ? inputElem.value : null;
-
                     blocksData.push({ action, script, value });
                 });
-
-                localStorage.setItem(`monkey_project_${projectId}`, JSON.stringify(blocksData));
+                return { id: projectId, blocks: blocksData };
             }
 
-            // --- RESTAURAR SI EXISTEN DATOS PREVIOS ---
+            document.getElementById('btn-save').addEventListener('click', () => {
+                const data = JSON.stringify(getProjectPayload(), null, 2);
+                const blob = new Blob([data], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `proyecto_${projectId}.monkey`;
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+
+            document.getElementById('btn-load').addEventListener('click', () => {
+                document.getElementById('file-input').click();
+            });
+
+            document.getElementById('file-input').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const parsed = JSON.parse(event.target.result);
+                        if (parsed.blocks) {
+                            renderBlocksFromData(parsed.blocks);
+                            saveProjectData();
+                        }
+                    } catch (err) {
+                        alert("Error al cargar el archivo .monkey");
+                    }
+                };
+                reader.readAsText(file);
+            });
+
+            // --- LOCALSTORAGE & RENDERING ---
+            function saveProjectData() {
+                const payload = getProjectPayload();
+                localStorage.setItem(`monkey_project_${projectId}`, JSON.stringify(payload.blocks));
+            }
+
+            function renderBlocksFromData(blocksData) {
+                workspace.innerHTML = '';
+                blocksData.forEach(item => {
+                    let sourceBlock = null;
+                    if (item.action) {
+                        sourceBlock = document.querySelector(`.toolbox [data-action="${item.action}"]`);
+                    }
+                    if (sourceBlock) {
+                        const clone = sourceBlock.cloneNode(true);
+                        if (item.value !== null && clone.querySelector('input')) {
+                            clone.querySelector('input').value = item.value;
+                        }
+                        workspace.appendChild(clone);
+                    } else if (item.script) {
+                        const newBlock = document.createElement('div');
+                        newBlock.className = 'monkey-block block-custom';
+                        newBlock.draggable = true;
+                        newBlock.innerHTML = `<span>⚙️ Bloque Inyectado</span><span class="btn-delete-block" onclick="removeBlock(this)">✕</span>`;
+                        newBlock.setAttribute('data-script', item.script);
+                        workspace.appendChild(newBlock);
+                    }
+                });
+            }
+
             function loadProjectData() {
                 const dataRaw = localStorage.getItem(`monkey_project_${projectId}`);
                 if (!dataRaw) return;
-
                 try {
-                    const blocksData = JSON.parse(dataRaw);
-                    workspace.innerHTML = '';
-
-                    blocksData.forEach(item => {
-                        let sourceBlock = null;
-                        if (item.action) {
-                            sourceBlock = document.querySelector(`.toolbox [data-action="${item.action}"]`);
-                        }
-                        if (sourceBlock) {
-                            const clone = sourceBlock.cloneNode(true);
-                            if (item.value !== null && clone.querySelector('input')) {
-                                clone.querySelector('input').value = item.value;
-                            }
-                            workspace.appendChild(clone);
-                        } else if (item.script) {
-                            const newBlock = document.createElement('div');
-                            newBlock.className = 'monkey-block block-custom';
-                            newBlock.draggable = true;
-                            newBlock.innerHTML = `<span>⚙️ Bloque Inyectado</span><span class="btn-delete-block" onclick="removeBlock(this)">✕</span>`;
-                            newBlock.setAttribute('data-script', item.script);
-                            workspace.appendChild(newBlock);
-                        }
-                    });
-                } catch(e) {
-                    console.error("Error al cargar datos del proyecto:", e);
-                }
+                    renderBlocksFromData(JSON.parse(dataRaw));
+                } catch(e) {}
             }
 
-            // --- MOTOR DE EJECUCIÓN SCRIPT ---
+            // --- EJECUCIÓN ---
             function executeScript() {
                 const activeBlocks = workspace.querySelectorAll('.monkey-block');
-                if (activeBlocks.length === 0) {
-                    alert("¡Arrastra al menos un bloque al centro primero!");
-                    return;
-                }
+                if (activeBlocks.length === 0) return;
 
                 activeBlocks.forEach((block) => {
                     const action = block.getAttribute('data-action');
@@ -498,7 +614,7 @@
                             const runCustom = new Function('posX', 'posY', 'rotation', 'monkey', customScript);
                             runCustom(posX, posY, rotation, monkey);
                         } catch (err) {
-                            console.error("Error en bloque personalizado:", err);
+                            console.error(err);
                         }
                     } else {
                         if (action === 'move') {
