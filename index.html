@@ -91,6 +91,7 @@
         .nav-right {
             display: flex;
             gap: 10px;
+            align-items: center;
         }
 
         .btn-nav {
@@ -107,6 +108,14 @@
 
         .btn-nav:hover {
             background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+            font-size: 14px;
         }
 
         /* Top Yellow Banner */
@@ -132,7 +141,7 @@
             font-weight: bold;
         }
 
-        /* Hero Section (PenguinMod Style) */
+        /* Hero Section */
         .hero-banner {
             background: linear-gradient(180deg, #0096ab 0%, #008394 100%);
             padding: 40px 10%;
@@ -305,11 +314,10 @@
     <nav>
         <div class="nav-left">
             <a href="index.html" class="brand-logo">
-                <!-- SVG de la carita/logo de MonkeyMod estilo PenguinMod -->
                 <svg class="brand-icon" viewBox="0 0 100 100">
                     <circle cx="50" cy="50" r="48" fill="#ffffff" />
                     <circle cx="50" cy="50" r="42" fill="#00bcd4" />
-                    <path d="M30,32 C20,32 15,45 15,55 C15,68 25,72 32,70 C36,78 42,82 50,82 C58,82 64,78 68,70 C75,72 85,68 85,55 C85,45 80,32 70,32 C60,32 54,40 50,42 C46,40 40,32 30,32 Z" fill="#f5d5a4"/>
+                    <path d="M30,32 C20,32 15,45 15,55 C15,68 25,72 32,70 C36,78 42,82 50,82 C58,82 64,78 68,70 C75,72 85,68 85,55 C85,45 80,32 70,32 C60,32 54,40 40,32 30,32 Z" fill="#f5d5a4"/>
                     <circle cx="38" cy="48" r="4" fill="#222"/>
                     <circle cx="62" cy="48" r="4" fill="#222"/>
                     <path d="M 40 64 Q 50 72 60 64" stroke="#6e473b" stroke-width="3" fill="none" stroke-linecap="round"/>
@@ -323,19 +331,19 @@
                 <input type="text" placeholder="Buscar proyectos...">
             </div>
         </div>
-        <div class="nav-right">
-            <a href="#" class="btn-nav">Iniciar sesión</a>
-            <a href="#" class="btn-nav">Regístrate</a>
+        <div class="nav-right" id="navAuth">
+            <a href="login.html" class="btn-nav">Iniciar sesión</a>
+            <a href="register.html" class="btn-nav">Regístrate</a>
         </div>
     </nav>
 
     <!-- Top Alert Banner -->
     <div class="alert-banner">
-        <span>⚠️ La creación de cuentas está deshabilitada por el momento.</span>
+        <span>⚠️ Sistema de autenticación conectado con Render.</span>
         <button class="btn-banner-details">Detalles</button>
     </div>
 
-    <!-- Hero Banner (Texto + Video) -->
+    <!-- Hero Banner -->
     <div class="hero-banner">
         <div class="hero-text">
             <h1>Programación basada en bloques con capacidades infinitas</h1>
@@ -346,7 +354,6 @@
             </a>
         </div>
         <div class="hero-video-wrapper">
-            <!-- URL de embebido correcta para evitar el bloqueo de iframe de YouTube -->
             <iframe src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ" title="MonkeyMod Video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
         </div>
     </div>
@@ -365,12 +372,11 @@
         <a href="#" class="btn-pill">Wiki de la comunidad</a>
     </div>
 
-    <!-- Main Container / News Grid -->
+    <!-- Main Container -->
     <div class="main-container">
         <p class="disclaimer-text">Nota de Scratch: ¡No menciones a MonkeyMod en Scratch! Tenemos diferentes reglas 🐵</p>
 
         <div class="content-grid">
-            <!-- Columna Izquierda -->
             <div class="card">
                 <div class="card-header">
                     <span class="card-title">¿Qué hay de nuevo?</span>
@@ -379,7 +385,6 @@
                 <p style="font-size: 14px; color: #ccc;">¡Las variables en la nube ahora funcionan en proyectos subidos recientemente!</p>
             </div>
 
-            <!-- Columna Derecha -->
             <div class="card">
                 <div class="card-header">
                     <span class="card-title">MonkeyNews</span>
@@ -392,5 +397,33 @@
         </div>
     </div>
 
+    <script>
+        const BACKEND_URL = 'https://monkeymod-l9hq.onrender.com';
+
+        // Comprobar si el usuario inició sesión al cargar la página
+        async function checkSession() {
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/me`, { credentials: 'include' });
+                const data = await res.json();
+                
+                if (data.loggedIn) {
+                    const navAuth = document.getElementById('navAuth');
+                    navAuth.innerHTML = `
+                        <div class="user-profile">
+                            <span>🐵 ${data.user.username}</span>
+                            <button class="btn-nav" id="btnLogout">Cerrar sesión</button>
+                        </div>
+                    `;
+                    document.getElementById('btnLogout').addEventListener('click', async () => {
+                        await fetch(`${BACKEND_URL}/api/logout`, { method: 'POST', credentials: 'include' });
+                        window.location.reload();
+                    });
+                }
+            } catch (err) {
+                console.log('Error verificando sesión:', err);
+            }
+        }
+        checkSession();
+    </script>
 </body>
 </html>
