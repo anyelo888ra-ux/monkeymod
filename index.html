@@ -3,114 +3,392 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🐵 MonkeyMod - Programación con capacidades infinitas</title>
+    <title>MonkeyMod - Programación basada en bloques</title>
+    <!-- Favicon en SVG codificado en Data URI -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%230096ab'/><circle cx='50' cy='50' r='40' fill='%2300bcd4'/><path d='M30,32 C20,32 15,45 15,55 C15,68 25,72 32,70 C36,78 42,82 50,82 C58,82 64,78 68,70 C75,72 85,68 85,55 C85,45 80,32 70,32 C60,32 54,40 50,42 C46,40 40,32 30,32 Z' fill='%23f5d5a4'/><circle cx='38' cy='48' r='5' fill='%23222'/><circle cx='62' cy='48' r='5' fill='%23222'/><ellipse cx='50' cy='58' rx='6' ry='4' fill='%236e473b'/><path d='M 38 65 Q 50 75 62 65' stroke='%236e473b' stroke-width='3' fill='none' stroke-linecap='round'/><path d='M30 35 L40 20 L50 35 L60 20 L70 35' stroke='white' stroke-width='6' stroke-linejoin='round' fill='none'/></svg>">
+    
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-            background-color: #111111;
-            color: white;
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
-        /* Navbar estilo PenguinMod */
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0d1117;
+            color: white;
+        }
+
+        /* Navbar */
         nav {
-            background-color: #00bcd4;
-            padding: 15px 30px;
+            background-color: #0096ab;
+            padding: 10px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            height: 55px;
         }
-        .logo {
-            font-size: 24px;
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: white;
             font-weight: bold;
+            font-size: 20px;
+        }
+
+        .brand-icon {
+            width: 36px;
+            height: 36px;
+        }
+
+        .nav-link {
             color: white;
             text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
         }
-        .search-box {
+
+        .search-container {
+            position: relative;
             display: flex;
-            gap: 5px;
+            align-items: center;
         }
-        .search-box input {
-            padding: 8px;
-            border-radius: 4px;
-            border: none;
+
+        .search-container input {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 6px 15px 6px 35px;
+            color: white;
+            outline: none;
+            width: 220px;
+            font-size: 14px;
         }
-        .search-box button {
-            background-color: #ffab19;
+
+        .search-container input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            width: 14px;
+            height: 14px;
+            fill: white;
+            opacity: 0.8;
+        }
+
+        .nav-right {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-nav {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
             border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
+            padding: 6px 14px;
+            border-radius: 6px;
             cursor: pointer;
+            font-size: 13px;
             font-weight: bold;
-        }
-        /* Contenido Principal */
-        .hero {
-            text-align: center;
-            padding: 60px 20px;
-            background: linear-gradient(180deg, #00bcd4 0%, #111111 100%);
-        }
-        .hero h1 {
-            font-size: 45px;
-            margin-bottom: 10px;
-        }
-        .hero p {
-            font-size: 20px;
-            color: #e0e0e0;
-        }
-        .btn-try {
-            background-color: #ffab19;
-            color: #111111;
-            padding: 15px 40px;
-            font-size: 22px;
-            font-weight: bold;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
             text-decoration: none;
-            display: inline-block;
-            margin-top: 20px;
-            box-shadow: 0 4px 15px rgba(255, 171, 25, 0.4);
         }
-        .btn-try:hover {
-            background-color: #e59500;
+
+        .btn-nav:hover {
+            background-color: rgba(255, 255, 255, 0.3);
         }
-        /* Sección de Video */
-        .video-section {
+
+        /* Top Yellow Banner */
+        .alert-banner {
+            background-color: #ffd000;
+            color: #222;
+            padding: 8px 16px;
             display: flex;
             justify-content: center;
-            padding: 40px 20px;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 600;
         }
-        .video-container {
-            width: 100%;
-            max-width: 560px;
-            aspect-ratio: 16/9;
-            border: 4px solid #ffab19;
+
+        .btn-banner-details {
+            background-color: rgba(0, 0, 0, 0.15);
+            border: none;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Hero Section (PenguinMod Style) */
+        .hero-banner {
+            background: linear-gradient(180deg, #0096ab 0%, #008394 100%);
+            padding: 40px 10%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 30px;
+            min-height: 320px;
+        }
+
+        .hero-text {
+            max-width: 550px;
+        }
+
+        .hero-text h1 {
+            font-size: 32px;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 15px;
+        }
+
+        .hero-text p {
+            font-size: 20px;
+            color: #f0f0f0;
+            margin-bottom: 25px;
+        }
+
+        .hero-text p a {
+            color: white;
+            text-decoration: underline;
+            font-weight: bold;
+        }
+
+        .btn-try-out {
+            background-color: white;
+            color: #008394;
+            padding: 10px 22px;
             border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            transition: transform 0.1s ease;
+        }
+
+        .btn-try-out:hover {
+            transform: translateY(-2px);
+            background-color: #f8f8f8;
+        }
+
+        /* Hero Video Container */
+        .hero-video-wrapper {
+            width: 440px;
+            height: 248px;
+            border-radius: 12px;
             overflow: hidden;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            background-color: #000;
+        }
+
+        .hero-video-wrapper iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Sub-banner Notice */
+        .sub-notice {
+            background-color: #725a00;
+            color: #fff;
+            text-align: center;
+            padding: 8px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        /* Action Buttons Bar */
+        .action-bar {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding: 20px;
+            background-color: #0d1117;
+        }
+
+        .btn-pill {
+            background-color: #00bcd4;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-pill:hover {
+            background-color: #00acc1;
+        }
+
+        /* Footer Grid Content */
+        .main-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .disclaimer-text {
+            text-align: center;
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 25px;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 18px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 8px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .card-link {
+            color: #58a6ff;
+            text-decoration: none;
+            font-size: 12px;
+        }
+
+        @media (max-width: 900px) {
+            .hero-banner {
+                flex-direction: column;
+                text-align: center;
+            }
+            .hero-video-wrapper {
+                width: 100%;
+                max-width: 440px;
+            }
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
 
+    <!-- Navbar -->
     <nav>
-        <a href="index.html" class="logo">🐵 MonkeyMod</a>
-        <form class="search-box" action="search.html" method="GET">
-            <input type="text" name="q" placeholder="Buscar proyectos..." required>
-            <button type="submit">Buscar</button>
-        </form>
+        <div class="nav-left">
+            <a href="index.html" class="brand-logo">
+                <!-- SVG de la carita/logo de MonkeyMod estilo PenguinMod -->
+                <svg class="brand-icon" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="48" fill="#ffffff" />
+                    <circle cx="50" cy="50" r="42" fill="#00bcd4" />
+                    <path d="M30,32 C20,32 15,45 15,55 C15,68 25,72 32,70 C36,78 42,82 50,82 C58,82 64,78 68,70 C75,72 85,68 85,55 C85,45 80,32 70,32 C60,32 54,40 50,42 C46,40 40,32 30,32 Z" fill="#f5d5a4"/>
+                    <circle cx="38" cy="48" r="4" fill="#222"/>
+                    <circle cx="62" cy="48" r="4" fill="#222"/>
+                    <path d="M 40 64 Q 50 72 60 64" stroke="#6e473b" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    <path d="M 32 38 L 42 22 L 50 35 L 58 22 L 68 38" stroke="white" stroke-width="5" stroke-linejoin="round" fill="none"/>
+                </svg>
+                MonkeyMod
+            </a>
+            <a href="edit.html" class="nav-link">Crear</a>
+            <div class="search-container">
+                <svg class="search-icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                <input type="text" placeholder="Buscar proyectos...">
+            </div>
+        </div>
+        <div class="nav-right">
+            <a href="#" class="btn-nav">Iniciar sesión</a>
+            <a href="#" class="btn-nav">Regístrate</a>
+        </div>
     </nav>
 
-    <div class="hero">
-        <h1>Programación basada en bloques con capacidades infinitas</h1>
-        <p>Creado usando Scratch y optimizado para la web.</p>
-        <a href="edit.html" class="btn-try">¡Pruébalo!</a>
+    <!-- Top Alert Banner -->
+    <div class="alert-banner">
+        <span>⚠️ La creación de cuentas está deshabilitada por el momento.</span>
+        <button class="btn-banner-details">Detalles</button>
     </div>
 
-    <div class="video-section">
-        <div class="video-container">
-            <!-- Ponemos un video de ejemplo, luego puedes cambiar el ID dQw4w9WgXcQ por el tuyo -->
-            <iframe width="100%" height="100%" src="https://youtube.com" frameborder="0" allowfullscreen></iframe>
+    <!-- Hero Banner (Texto + Video) -->
+    <div class="hero-banner">
+        <div class="hero-text">
+            <h1>Programación basada en bloques con capacidades infinitas</h1>
+            <p>Creado usando <a href="https://scratch.mit.edu" target="_blank">Scratch</a> y <a href="https://turbowarp.org" target="_blank">Turbowarp</a></p>
+            <a href="edit.html" class="btn-try-out">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#008394"><path d="M8 5v14l11-7z"/></svg>
+                Pruébalo
+            </a>
+        </div>
+        <div class="hero-video-wrapper">
+            <!-- URL de embebido correcta para evitar el bloqueo de iframe de YouTube -->
+            <iframe src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ" title="MonkeyMod Video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <!-- Sub Notice Bar -->
+    <div class="sub-notice">
+        ⚠️ MonkeyMod ha sido diseñado por desarrolladores independientes. Podría haber algún error con las traducciones.
+    </div>
+
+    <!-- Middle Action Pill Buttons -->
+    <div class="action-bar">
+        <a href="#" class="btn-pill">Compilador</a>
+        <a href="#" class="btn-pill">Crédito</a>
+        <a href="#" class="btn-pill">Financiación</a>
+        <a href="https://github.com" target="_blank" class="btn-pill">GitHub</a>
+        <a href="#" class="btn-pill">Wiki de la comunidad</a>
+    </div>
+
+    <!-- Main Container / News Grid -->
+    <div class="main-container">
+        <p class="disclaimer-text">Nota de Scratch: ¡No menciones a MonkeyMod en Scratch! Tenemos diferentes reglas 🐵</p>
+
+        <div class="content-grid">
+            <!-- Columna Izquierda -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">¿Qué hay de nuevo?</span>
+                    <a href="#" class="card-link">Ver más</a>
+                </div>
+                <p style="font-size: 14px; color: #ccc;">¡Las variables en la nube ahora funcionan en proyectos subidos recientemente!</p>
+            </div>
+
+            <!-- Columna Derecha -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">MonkeyNews</span>
+                </div>
+                <h3 style="font-size: 15px; margin-bottom: 8px;">Próximo aniversario de MonkeyMod!!</h3>
+                <p style="font-size: 13px; color: #aaa; line-height: 1.4;">
+                    ¡Hola a todos! Estamos preparando el video del aniversario. Si quieres enviar un proyecto para tener la oportunidad de aparecer en el video, por favor completa el formulario.
+                </p>
+            </div>
         </div>
     </div>
 
