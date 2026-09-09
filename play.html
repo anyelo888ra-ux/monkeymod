@@ -4,27 +4,76 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🐵 MonkeyMod - Modo Jugador</title>
-    <script src="scratch-vm.js"></script>
     <style>
-        body { font-family: sans-serif; background-color: #0f1115; color: white; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
-        .player-box { background-color: #181b24; padding: 25px; border-radius: 12px; border: 2px solid #232834; box-shadow: 0 10px 30px rgba(0,0,0,0.6); text-align: center; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #0f1115; 
+            color: white; 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            overflow: hidden; 
+        }
+        .player-box { 
+            background-color: #181b24; 
+            padding: 25px; 
+            border-radius: 12px; 
+            border: 2px solid #232834; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6); 
+            text-align: center; 
+        }
         h1 { color: #ffab19; margin: 0 0 5px 0; font-size: 24px; }
-        #stage-canvas { background-color: #ffffff; border-radius: 6px; width: 480px; height: 360px; box-shadow: inset 0 0 10px rgba(0,0,0,0.2); }
+        .stage-container {
+            width: 480px;
+            height: 360px;
+            background-color: #ffffff;
+            border-radius: 6px;
+            border: 3px solid #232834;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+            margin: 0 auto;
+        }
+        #monkey-player {
+            font-size: 50px;
+            position: absolute;
+            top: 155px;
+            left: 215px;
+            transition: all 0.2s ease-out;
+            line-height: 1;
+            transform-origin: center;
+        }
         .controls { margin-top: 15px; display: flex; gap: 12px; justify-content: center; }
-        button { background-color: #232834; border: none; color: white; padding: 10px 22px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 15px; }
-        button.flag { background-color: #4c97ff; }
+        button { 
+            background-color: #232834; 
+            border: none; 
+            color: white; 
+            padding: 10px 22px; 
+            font-weight: bold; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 15px; 
+            transition: all 0.2s ease;
+        }
+        button.flag { background-color: #28a745; }
         button.stop { background-color: #ff4c4c; }
-        button:hover { opacity: 0.9; }
-        .btn-back { background-color: #3a3f50; }
+        button:hover { opacity: 0.9; transform: translateY(-1px); }
+        button:active { transform: translateY(0); }
+        .btn-back { background-color: #4c97ff; }
     </style>
 </head>
 <body>
 
     <div class="player-box">
         <h1 id="title">MonkeyMod Player</h1>
-        <p id="sub-id" style="color: #626e82; margin: 0 0 20px 0; font-size: 13px;">ID del juego: -------</p>
+        <p id="sub-id" style="color: #626e82; margin: 0 0 20px 0; font-size: 13px;">Proyecto ID: -------</p>
         
-        <canvas id="stage-canvas" width="480" height="360"></canvas>
+        <div class="stage-container">
+            <div id="monkey-player">🐵</div>
+        </div>
         
         <div class="controls">
             <button id="green-flag" class="flag">🟢 Iniciar</button>
@@ -34,27 +83,95 @@
     </div>
 
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const projectId = urlParams.get('id');
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- LECTURA DE IDENTIFICADOR WEB ---
+            const urlParams = new URLSearchParams(window.location.search);
+            const projectId = urlParams.get('id');
 
-        if (projectId) {
-            document.getElementById('sub-id').innerText = `ID Único del Proyecto: ${projectId}`;
-        }
+            if (projectId) {
+                document.getElementById('sub-id').innerText = `Proyecto ID: ${projectId}`;
+            }
 
-        document.getElementById('btn-back').addEventListener('click', () => {
-            window.location.href = `edit.html?id=${projectId || ''}`;
+            document.getElementById('btn-back').addEventListener('click', () => {
+                window.location.href = `edit.html?id=${projectId || ''}`;
+            });
+
+            // --- REPRODUCTOR DEL MOTOR NATIVO ---
+            const monkey = document.getElementById('monkey-player');
+            let posX = 215;
+            let posY = 155;
+            let rotation = 0;
+            let intervalId = null;
+
+            function runSavedScript() {
+                if (!projectId) return;
+
+                const rawData = localStorage.getItem(`monkey_project_${projectId}`);
+                if (!rawData) {
+                    alert("No hay ningún script guardado para este proyecto. Crea uno en el editor.");
+                    return;
+                }
+
+                try {
+                    const blocks = JSON.parse(rawData);
+                    if (!blocks || blocks.length === 0) return;
+
+                    blocks.forEach(block => {
+                        const action = block.action;
+                        const customScript = block.script;
+
+                        if (customScript) {
+                            try {
+                                const runCustom = new Function('posX', 'posY', 'rotation', 'monkey', customScript);
+                                runCustom(posX, posY, rotation, monkey);
+                            } catch (err) {
+                                console.error("Error en bloque personalizado:", err);
+                            }
+                        } else {
+                            if (action === 'move') {
+                                const steps = parseInt(block.value) || 10;
+                                posX += steps;
+                                if (posX > 420) posX = 0;
+                                monkey.style.left = posX + 'px';
+                            } else if (action === 'rotate') {
+                                const deg = parseInt(block.value) || 15;
+                                rotation += deg;
+                                monkey.style.transform = `rotate(${rotation}deg)`;
+                            } else if (action === 'jump') {
+                                posX = Math.floor(Math.random() * 400);
+                                posY = Math.floor(Math.random() * 280);
+                                monkey.style.left = posX + 'px';
+                                monkey.style.top = posY + 'px';
+                            } else if (action === 'reset') {
+                                posX = 215;
+                                posY = 155;
+                                rotation = 0;
+                                monkey.style.left = posX + 'px';
+                                monkey.style.top = posY + 'px';
+                                monkey.style.transform = `rotate(0deg)`;
+                            }
+                        }
+                    });
+                } catch(e) {
+                    console.error("Error al ejecutar script guardado:", e);
+                }
+            }
+
+            document.getElementById('green-flag').addEventListener('click', () => {
+                if (intervalId) clearInterval(intervalId);
+                runSavedScript();
+            });
+
+            document.getElementById('stop-all').addEventListener('click', () => {
+                if (intervalId) clearInterval(intervalId);
+                posX = 215;
+                posY = 155;
+                rotation = 0;
+                monkey.style.left = posX + 'px';
+                monkey.style.top = posY + 'px';
+                monkey.style.transform = `rotate(0deg)`;
+            });
         });
-
-        // Inicialización nativa del reproductor
-        const vm = new VirtualMachine();
-        const canvas = document.getElementById('stage-canvas');
-        if (window.ScratchStorage) vm.attachStorage(new window.ScratchStorage());
-        if (window.ScratchRender) vm.attachRenderer(new window.ScratchRender(canvas));
-        if (window.AudioEngine) vm.attachAudioEngine(new window.AudioEngine());
-
-        document.getElementById('green-flag').addEventListener('click', () => vm.greenFlag());
-        document.getElementById('stop-all').addEventListener('click', () => vm.stopAll());
-        vm.start();
     </script>
 </body>
 </html>
