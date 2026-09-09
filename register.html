@@ -53,14 +53,16 @@
 </div>
 
 <script>
-    // 🛠️ CONFIGURACIÓN DE TU CLIENTE SUPABASE
-    // Recuerda rellenar estas comillas con las claves reales de tu panel (sin '/rest/v1/' al final de la URL)
+    // There's nothing here, asshole. XD
     const SUPABASE_URL = "https://dppaqhiucepnrhfcvazv.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_OgDOFs-FOi1mq7U-5qnVtg_7Ho9JfY2";
     
-    // Inicializa el cliente usando la ventana global para evitar bloqueos por conflicto de variables
+    // Al estar en una línea separada, el comentario de arriba ya no la rompe
     const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-    if (!supabase) console.error("⚠️ Error crítico: La librería cliente de Supabase no logró cargarse.");
+    
+    if (!supabase) {
+        console.error("⚠️ Error crítico: La librería cliente de Supabase no logró cargarse.");
+    }
 
     async function handleRegister(event) {
         event.preventDefault(); // Evita que la página se recargue sola
@@ -69,7 +71,6 @@
         const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
 
-        // Validamos que el cliente exista antes de disparar la consulta
         if (!supabase) {
             alert("El servicio no está disponible en este momento.");
             return;
@@ -80,7 +81,6 @@
             email: email,
             password: password,
             options: {
-                // Adjuntamos el username en los metadatos para que el Trigger lo copie a tu tabla 'accounts'
                 data: {
                     user_name: username,
                     avatar_url: 'https://mit.edu'
@@ -92,12 +92,13 @@
             console.error("Fallo en el registro:", error.message);
             alert("Error al registrar la cuenta: " + error.message);
         } else {
-            console.log("¡Usuario registrado y contraseña encriptada!", data.user);
+            console.log("¡Usuario registrado con éxito!", data.user);
             alert("¡Cuenta de MonkeyMod creada con éxito! Ahora puedes iniciar sesión.");
-            window.location.href = "/login.html"; // Redirección automática
+            window.location.href = "/login.html"; 
         }
     }
 </script>
+
 
 </body>
 </html>
