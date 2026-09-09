@@ -75,7 +75,7 @@
                 <label>Contraseña</label>
                 <input type="password" id="password" required>
             </div>
-            <button type="submit" class="btn-submit">Ingresar</button>
+            <button type="submit" class="btn-submit" id="btnSubmit">Ingresar</button>
             <div class="error-msg" id="errorMsg"></div>
         </form>
         <div class="link-footer">
@@ -84,23 +84,38 @@
     </div>
 
     <script>
+        const BACKEND_URL = 'https://monkeymod-l9hq.onrender.com';
+
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             const errorMsg = document.getElementById('errorMsg');
+            const btnSubmit = document.getElementById('btnSubmit');
 
-            const res = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
+            errorMsg.textContent = '';
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = 'Cargando...';
 
-            const data = await res.json();
-            if (res.ok) {
-                window.location.href = 'index.html';
-            } else {
-                errorMsg.textContent = data.error;
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    window.location.href = 'index.html';
+                } else {
+                    errorMsg.textContent = data.error || 'Error al iniciar sesión';
+                }
+            } catch (err) {
+                errorMsg.textContent = 'No se pudo conectar con el servidor Backend.';
+            } finally {
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = 'Ingresar';
             }
         });
     </script>
