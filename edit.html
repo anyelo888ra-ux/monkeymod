@@ -4,18 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🐵 MonkeyMod - Editor</title>
-    <script type="module" src="main.mjs"></script>
+    
+    <!-- Cargamos primero la máquina virtual clásica -->
     <script src="scratch-vm.js"></script>
+    
     <style>
         body { font-family: sans-serif; background-color: #111; color: white; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         header { background-color: #ffab19; color: #111; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
         .main-container { display: flex; flex: 1; height: calc(100vh - 50px); }
-        #blocks-container { flex: 2; height: 100%; border-right: 3px solid #ffab19; }
+        #blocks-container { flex: 2; height: 100%; border-right: 3px solid #ffab19; background-color: #1e1e1e; }
         #stage-container { flex: 1; background-color: #222; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
         #stage-canvas { background-color: #fff; border: 4px solid #ffab19; border-radius: 8px; width: 480px; height: 360px; }
         .controls { margin-bottom: 15px; display: flex; gap: 10px; }
         button { background-color: #ffab19; border: none; color: #111; padding: 10px 15px; font-weight: bold; border-radius: 5px; cursor: pointer; }
         .btn-publish { background-color: #00bcd4; color: white; }
+        
+        /* Estilos visuales inyectados para forzar el tamaño correcto de Blockly */
+        .blocklyWidgetDiv, .blocklyTooltipDiv { z-index: 99999 !important; }
     </style>
 </head>
 <body>
@@ -26,7 +31,9 @@
     </header>
 
     <div class="main-container">
+        <!-- El contenedor donde se inyectará el espacio de bloques -->
         <div id="blocks-container"></div>
+        
         <div id="stage-container">
             <div class="controls">
                 <button id="green-flag">🟢 Bandera</button>
@@ -37,46 +44,79 @@
         </div>
     </div>
 
+    <!-- Caja de herramientas con formato estándar compatible -->
     <xml id="toolbox" style="display: none">
         <category name="Movimiento" colour="#4C97FF">
-            <block type="motion_movesteps"><value name="STEPS"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>
+            <block type="motion_movesteps">
+                <value name="STEPS">
+                    <shadow type="math_number">
+                        <field name="NUM">10</field>
+                    </shadow>
+                </value>
+            </block>
         </category>
     </xml>
 
-    <script>
+    <!-- Usamos un único script de tipo módulo para que todo cargue sincronizado -->
+    <script type="module">
+        // 1. Importamos tu main.mjs local. Esto registrará Blockly en el objeto global del navegador (window)
+        import './main.mjs';
+
         // --- LÓGICA DE ID ÚNICO ---
         const urlParams = new URLSearchParams(window.location.search);
         let projectId = urlParams.get('id');
 
         if (!projectId) {
-            // Genera un ID aleatorio de 8 dígitos si no existe uno
             projectId = Math.floor(10000000 + Math.random() * 90000000).toString();
-            // Actualiza la barra de URL del navegador sin recargar la página
             window.history.replaceState({}, '', `edit.html?id=${projectId}`);
         }
         document.getElementById('project-id-display').innerText = `Proyecto ID: ${projectId}`;
 
-        // Al hacer clic en publicar, abre la página de reproducción pasando el mismo ID
         document.getElementById('publish-btn').addEventListener('click', () => {
-            alert(`¡Proyecto Guardado en tu navegador!\nRedireccionando a la página de juego organizada con tu ID.`);
+            alert(`¡Proyecto Guardado!\nRedireccionando a la página de juego organizada con tu ID.`);
             window.location.href = `play.html?id=${projectId}`;
         });
 
-        // --- MOTORES DE SCRATCH ---
-        const vm = new VirtualMachine();
-        const canvas = document.getElementById('stage-canvas');
-        vm.attachStorage(new ScratchStorage());
-        vm.attachRenderer(new ScratchRender(canvas));
-        vm.attachAudioEngine(new AudioEngine());
+        // --- INICIALIZACIÓN SEGURO DEL ENTORNO ---
+        // Esperamos una pequeña fracción de segundo para asegurarnos de que la librería de bloques esté completamente lista en el DOM
+        setTimeout(() => {
+            try {
+                // Buscamos a Blockly de forma segura desde el objeto global configurado por Webpack
+                const targetBlockly = window.Blockly || Blockly;
 
-        const workspace = Blockly.inject('blocks-container', {
-            toolbox: document.getElementById('toolbox'),
-            media: 'https://unpkg.com'
-        });
+                if (!targetBlockly) {
+                    console.error("Error: El motor de bloques no está definido en el contexto global.");
+                    return;
+                }
 
-        document.getElementById('green-flag').addEventListener('click', () => vm.greenFlag());
-        document.getElementById('stop-all').addEventListener('click', () => vm.stopAll());
-        vm.start();
+                // Inyectamos el área de trabajo en el contenedor correspondiente
+                const workspace = targetBlockly.inject('blocks-container', {
+                    toolbox: document.getElementById('toolbox'),
+                    media: 'https://unpkg.com',
+                    zoom: { controls: true, wheel: true, startScale: 0.75, maxScale: 3, minScale: 0.3, scaleSpeed: 1.2 },
+                    trashcan: true
+                });
+
+                // Inicializamos la máquina virtual buscando el constructor global seguro
+                const VMConstructor = window.VirtualMachine || window.ScratchVM;
+                if (VMConstructor) {
+                    const vm = new VMConstructor();
+                    const canvas = document.getElementById('stage-canvas');
+                    
+                    if (window.ScratchStorage) vm.attachStorage(new window.ScratchStorage());
+                    if (window.ScratchRender) vm.attachRenderer(new window.ScratchRender(canvas));
+                    if (window.AudioEngine) vm.attachAudioEngine(new window.AudioEngine());
+
+                    document.getElementById('green-flag').addEventListener('click', () => vm.greenFlag());
+                    document.getElementById('stop-all').addEventListener('click', () => vm.stopAll());
+                    vm.start();
+                    console.log("Motores de MonkeyMod cargados exitosamente.");
+                }
+
+            } catch (error) {
+                console.error("Ocurrió un inconveniente inicializando los componentes:", error);
+            }
+        }, 100);
     </script>
 </body>
 </html>
