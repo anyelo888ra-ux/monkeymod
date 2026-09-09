@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐵 MonkeyMod - Editor</title>
+    <script type="module" src="main.mjs"></script>
+    <script src="scratch-vm.js"></script>
+    <style>
+        body { font-family: sans-serif; background-color: #111; color: white; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        header { background-color: #ffab19; color: #111; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        .main-container { display: flex; flex: 1; height: calc(100vh - 50px); }
+        #blocks-container { flex: 2; height: 100%; border-right: 3px solid #ffab19; }
+        #stage-container { flex: 1; background-color: #222; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        #stage-canvas { background-color: #fff; border: 4px solid #ffab19; border-radius: 8px; width: 480px; height: 360px; }
+        .controls { margin-bottom: 15px; display: flex; gap: 10px; }
+        button { background-color: #ffab19; border: none; color: #111; padding: 10px 15px; font-weight: bold; border-radius: 5px; cursor: pointer; }
+        .btn-publish { background-color: #00bcd4; color: white; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <span>🐵 MonkeyMod v1.0 - Editor</span>
+        <span id="project-id-display" style="font-size: 14px; background: #111; color: #ffab19; padding: 5px 10px; border-radius: 4px;">Proyecto ID: ...</span>
+    </header>
+
+    <div class="main-container">
+        <div id="blocks-container"></div>
+        <div id="stage-container">
+            <div class="controls">
+                <button id="green-flag">🟢 Bandera</button>
+                <button id="stop-all">🔴 Parar</button>
+                <button id="publish-btn" class="btn-publish">🚀 Publicar Proyecto</button>
+            </div>
+            <canvas id="stage-canvas" width="480" height="360"></canvas>
+        </div>
+    </div>
+
+    <xml id="toolbox" style="display: none">
+        <category name="Movimiento" colour="#4C97FF">
+            <block type="motion_movesteps"><value name="STEPS"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>
+        </category>
+    </xml>
+
+    <script>
+        // --- LÓGICA DE ID ÚNICO ---
+        const urlParams = new URLSearchParams(window.location.search);
+        let projectId = urlParams.get('id');
+
+        if (!projectId) {
+            // Genera un ID aleatorio de 8 dígitos si no existe uno
+            projectId = Math.floor(10000000 + Math.random() * 90000000).toString();
+            // Actualiza la barra de URL del navegador sin recargar la página
+            window.history.replaceState({}, '', `edit.html?id=${projectId}`);
+        }
+        document.getElementById('project-id-display').innerText = `Proyecto ID: ${projectId}`;
+
+        // Al hacer clic en publicar, abre la página de reproducción pasando el mismo ID
+        document.getElementById('publish-btn').addEventListener('click', () => {
+            alert(`¡Proyecto Guardado en tu navegador!\nRedireccionando a la página de juego organizada con tu ID.`);
+            window.location.href = `play.html?id=${projectId}`;
+        });
+
+        // --- MOTORES DE SCRATCH ---
+        const vm = new VirtualMachine();
+        const canvas = document.getElementById('stage-canvas');
+        vm.attachStorage(new ScratchStorage());
+        vm.attachRenderer(new ScratchRender(canvas));
+        vm.attachAudioEngine(new AudioEngine());
+
+        const workspace = Blockly.inject('blocks-container', {
+            toolbox: document.getElementById('toolbox'),
+            media: 'https://unpkg.com'
+        });
+
+        document.getElementById('green-flag').addEventListener('click', () => vm.greenFlag());
+        document.getElementById('stop-all').addEventListener('click', () => vm.stopAll());
+        vm.start();
+    </script>
+</body>
+</html>
