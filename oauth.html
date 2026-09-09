@@ -7,6 +7,10 @@
         body { background-color: #1e1e24; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .auth-card { background: #2a2a32; padding: 30px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); width: 360px; }
         .logo { font-size: 26px; font-weight: bold; color: #ff9f1c; margin-bottom: 15px; }
+        .user-profile { background: #1e1e24; padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid #3a3a45; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .user-avatar { border-radius: 50%; width: 60px; height: 60px; border: 2px solid #ff9f1c; background: #2a2a32; }
+        .user-name { font-weight: bold; margin: 0; font-size: 16px; }
+        .user-email { color: #aaa; font-size: 13px; margin: 0; }
         .btn-box { display: flex; justify-content: space-around; margin-top: 25px; }
         .btn { padding: 12px 25px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; width: 110px; }
         .btn-allow { background-color: #4cc9f0; color: #1e1e24; }
@@ -19,6 +23,12 @@
     <div class="logo">🐒 MonkeyMod Auth</div>
     <h3>¿Conectar aplicación?</h3>
     <p>Un proyecto externo solicita verificar tu identidad de MonkeyMod para iniciar sesión.</p>
+    
+    <!-- Contenedor dinámico del perfil del usuario logeado -->
+    <div id="userCard" class="user-profile">
+        <p style="color: #aaa; margin: 0; font-size: 13px;">Cargando cuenta de Supabase...</p>
+    </div>
+
     <p id="appInfo" style="color: #aaa; font-size: 13px; font-style: italic;">Detectando ID de la aplicación...</p>
     
     <div class="btn-box">
@@ -30,7 +40,6 @@
 <script>
     // Captura automática de parámetros dinámicos de la barra de direcciones
     const urlParams = new URLSearchParams(window.location.search);
-    // Busca tanto '?id=' como '?client_id=' para evitar fallas en el login
     const currentClientId = urlParams.get('id') || urlParams.get('client_id'); 
 
     if (currentClientId) {
@@ -38,6 +47,34 @@
     } else {
         document.getElementById('appInfo').innerText = "⚠️ No se detectó ningún ID aleatorio en la URL.";
     }
+
+    // Inicializa la carga del usuario y el parseo de datos de Supabase
+    async function loadActiveUser() {
+        // Asegúrate de que tu cliente 'supabase' ya esté inicializado globalmente antes de esta sección
+        const { data: { user }, error } = await supabase.auth.getUser();
+
+        if (error || !user) {
+            document.getElementById('userCard').innerHTML = `
+                <p style="color: #f72585; margin: 0; font-size: 13px;">⚠️ No tienes ninguna sesión activa.</p>
+            `;
+            return;
+        }
+
+        // Parseo de metadatos nativos desde el proveedor (Google/GitHub)
+        const email = user.email || "Sin correo disponible";
+        const name = user.user_metadata.full_name || user.user_metadata.user_name || "Usuario de MonkeyMod";
+        const avatar = user.user_metadata.avatar_url || "https://mit.edu";
+
+        // Inyección dinámica de la tarjeta estilo Google Auth
+        document.getElementById('userCard').innerHTML = `
+            <img src="${avatar}" class="user-avatar" alt="Avatar">
+            <p class="user-name">${name}</p>
+            <p class="user-email">${email}</p>
+        `;
+    }
+
+    // Ejecuta la lectura del LocalStorage al cargar la página web
+    loadActiveUser();
 
     async function approveAccess() {
         const { data: { session } } = await supabase.auth.getSession();
@@ -56,7 +93,7 @@
         // Crea el token único de inicio de sesión de un solo uso
         const singleUseToken = 'mm_tok_' + Math.random().toString(36).substring(2, 15);
 
-        // Guardar el token de verificación en Supabase
+        // Guardar el token de verificación en tu tabla de Supabase
         const { error } = await supabase
             .from('active_oauth_sessions')
             .insert([{ login_token: singleUseToken, user_id: session.user.id, client_id: currentClientId }]);
