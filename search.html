@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐵 MonkeyMod - Buscar Proyectos</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background-color: #111111;
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+        nav {
+            background-color: #00bcd4;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+        .container {
+            padding: 40px 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h2 {
+            color: #ffab19;
+            border-bottom: 2px solid #ffab19;
+            padding-bottom: 10px;
+        }
+        .result-box {
+            background-color: #222222;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+            color: #aaaaaa;
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="index.html" class="logo">🐵 MonkeyMod</a>
+    </nav>
+
+    <div class="container">
+        <h2>Resultados de búsqueda para: <span id="search-query" style="color: white;"></span></h2>
+        
+        <div class="result-box">
+            <p>Aún no hay proyectos compartidos públicamente con este nombre.</p>
+        </div>
+    </div>
+
+    <script>
+        // Captura el texto que se buscó en la URL (?q=loquebuscaste)
+        const urlParams = new URLSearchParams(window.location.search);
+        const query = urlParams.get('q');
+        document.getElementById('search-query').innerText = query ? query : "Ninguna búsqueda";
+    </script>
+</body>
+</html>
