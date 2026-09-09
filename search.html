@@ -25,6 +25,14 @@
             color: white;
             text-decoration: none;
         }
+        .btn-back {
+            background-color: #ffab19;
+            color: black;
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: bold;
+        }
         .container {
             padding: 40px 20px;
             max-width: 800px;
@@ -37,11 +45,12 @@
         }
         .result-box {
             background-color: #222222;
-            padding: 20px;
+            padding: 30px;
             border-radius: 8px;
             margin-top: 20px;
             text-align: center;
             color: #aaaaaa;
+            border: 1px solid #333333;
         }
     </style>
 </head>
@@ -49,21 +58,27 @@
 
     <nav>
         <a href="index.html" class="logo">🐵 MonkeyMod</a>
+        <a href="index.html" class="btn-back">⬅ Volver al inicio</a>
     </nav>
 
     <div class="container">
         <h2>Resultados de búsqueda para: <span id="search-query" style="color: white;"></span></h2>
         
         <div class="result-box">
-            <p>Aún no hay proyectos compartidos públicamente con este nombre.</p>
+            <p id="search-status">Aún no hay proyectos compartidos públicamente con este nombre.</p>
         </div>
     </div>
 
     <script>
-        // Captura el texto que se buscó en la URL (?q=loquebuscaste)
         const urlParams = new URLSearchParams(window.location.search);
         const query = urlParams.get('q');
-        document.getElementById('search-query').innerText = query ? query : "Ninguna búsqueda";
+        
+        if (query && query.trim() !== '') {
+            document.getElementById('search-query').innerText = query;
+        } else {
+            document.getElementById('search-query').innerText = "Ninguna búsqueda";
+            document.getElementById('search-status').innerText = "Escribe un término de búsqueda en la barra superior para encontrar proyectos.";
+        }
     </script>
 </body>
 </html>
