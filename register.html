@@ -19,7 +19,7 @@
         .footer-text a { color: #4cc9f0; text-decoration: none; font-weight: bold; }
         .footer-text a:hover { text-decoration: underline; }
     </style>
-    <!-- ⚠️ IMPORTANTE: Aquí debes importar la CDN oficial de Supabase.js para que tus scripts sirvan -->
+    <!-- 🚀 CDN Oficial de Supabase corregida con la ruta UMD completa -->
     <script src="https://jsdelivr.net"></script>
 </head>
 <body>
@@ -54,12 +54,13 @@
 
 <script>
     // 🛠️ CONFIGURACIÓN DE TU CLIENTE SUPABASE
-    // Reemplaza estos dos textos con la URL y la Anon Key reales de tu panel de Supabase Settings
+    // Recuerda rellenar estas comillas con las claves reales de tu panel (sin '/rest/v1/' al final de la URL)
     const SUPABASE_URL = "https://dppaqhiucepnrhfcvazv.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_OgDOFs-FOi1mq7U-5qnVtg_7Ho9JfY2";
     
-    // Inicializa el cliente nativo
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Inicializa el cliente usando la ventana global para evitar bloqueos por conflicto de variables
+    const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+    if (!supabase) console.error("⚠️ Error crítico: La librería cliente de Supabase no logró cargarse.");
 
     async function handleRegister(event) {
         event.preventDefault(); // Evita que la página se recargue sola
@@ -67,6 +68,12 @@
         const username = document.getElementById('username').value.trim();
         const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
+
+        // Validamos que el cliente exista antes de disparar la consulta
+        if (!supabase) {
+            alert("El servicio no está disponible en este momento.");
+            return;
+        }
 
         // 🚀 Envío de datos al motor de encriptación seguro de Supabase
         const { data, error } = await supabase.auth.signUp({
