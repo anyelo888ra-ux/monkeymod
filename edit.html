@@ -3,163 +3,472 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🐵 MonkeyMod - Editor Profesional</title>
-    <script src="scratch-vm.js"></script>
+    <title>🐵 MonkeyMod v2.0 - Motor Nativo Independiente</title>
     <style>
-        body { font-family: sans-serif; background-color: #111111; color: white; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        
-        /* Barra superior estilo PenguinMod */
-        header { background-color: #0f1115; color: #fff; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ffab19; }
-        .nav-left { display: flex; gap: 15px; align-items: center; }
-        .nav-btn { background: #232834; border: none; color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; }
-        .nav-btn:hover { background: #ffab19; color: #111; }
-        
-        /* Sub-barra de pestañas (Código, Disfraces, Sonidos) */
-        .tab-bar { background-color: #181b24; display: flex; gap: 5px; padding: 5px 20px 0 20px; border-bottom: 1px solid #232834; }
-        .tab { background: #11141a; border: 1px solid #232834; border-bottom: none; color: #aaa; padding: 8px 20px; border-radius: 6px 6px 0 0; cursor: pointer; font-size: 13px; font-weight: bold; }
-        .tab.active { background: #0f1115; color: #ffab19; border-top: 2px solid #ffab19; }
+        :root {
+            --bg-dark: #0f1115;
+            --panel-bg: #181b24;
+            --border-color: #232834;
+            --accent-orange: #ffab19;
+            --motion-blue: #4c97ff;
+            --control-orange: #ffab19;
+            --custom-purple: #9966ff;
+            --danger-red: #dc3545;
+            --success-green: #28a745;
+        }
 
-        /* Contenedor principal de trabajo */
-        .main-container { display: flex; flex: 1; height: calc(100vh - 90px); }
-        #blocks-container { flex: 2; height: 100%; background-color: #11141a; }
-        
-        /* Panel del escenario e información del objeto */
-        #stage-container { flex: 1; background-color: #181b24; display: flex; flex-direction: column; align-items: center; padding: 15px; border-left: 2px solid #232834; overflow-y: auto; }
-        .stage-box { background-color: #0f1115; padding: 10px; border-radius: 8px; border: 2px solid #232834; text-align: center; }
-        #stage-canvas { background-color: #ffffff; border-radius: 4px; width: 400px; height: 300px; display: block; }
-        
-        /* Controles de ejecución */
-        .controls { margin-top: 10px; display: flex; gap: 10px; width: 100%; justify-content: center; }
-        .btn-action { background: #232834; border: none; padding: 8px 20px; font-weight: bold; border-radius: 5px; cursor: pointer; font-size: 15px; color: white; }
-        .btn-action.flag { background: #4c97ff; }
-        .btn-action.stop { background: #ff4c4c; }
-        .btn-publish { background-color: #ffab19; color: #111; font-weight: bold; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; }
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
 
-        /* Panel de propiedades del Objeto (Estilo Scratch/Penguin) */
-        .sprite-info { background: #0f1115; border: 1px solid #232834; border-radius: 8px; width: 100%; max-width: 400px; margin-top: 15px; padding: 12px; box-sizing: border-box; font-size: 13px; }
-        .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
-        .info-input { background: #181b24; border: 1px solid #232834; color: white; padding: 4px; border-radius: 4px; width: 70px; text-align: center; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: var(--bg-dark); 
+            color: white; 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh; 
+            overflow: hidden; 
+        }
+        
+        /* Encabezado Principal */
+        header { 
+            background-color: var(--panel-bg); 
+            padding: 10px 20px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 2px solid var(--accent-orange); 
+        }
+
+        .title { 
+            font-size: 20px; 
+            font-weight: bold; 
+            color: var(--accent-orange); 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+        }
+
+        .badge {
+            font-size: 11px;
+            background: var(--accent-orange);
+            color: #111;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        /* Botones de acción */
+        button { 
+            background-color: var(--accent-orange); 
+            border: none; 
+            color: #111; 
+            padding: 8px 14px; 
+            font-weight: bold; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 13px; 
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        button:hover { 
+            filter: brightness(1.15);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-inject { background-color: #00bcd4; color: white; }
+        .btn-run { background-color: var(--success-green); color: white; }
+        .btn-clear { background-color: var(--danger-red); color: white; }
+
+        /* Contenedor del Editor */
+        .editor-container { display: flex; flex: 1; height: calc(100vh - 55px); }
+
+        /* 1. Barra de Categorías + Herramientas (Izquierda) */
+        .sidebar {
+            width: 280px;
+            background-color: #11141a;
+            border-right: 2px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .category-tabs {
+            display: flex;
+            background: #0b0d10;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 10px 5px;
+            font-size: 11px;
+            text-align: center;
+            cursor: pointer;
+            color: #888;
+            font-weight: bold;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab.active {
+            color: white;
+            border-bottom-color: var(--accent-orange);
+            background: var(--panel-bg);
+        }
+
+        .toolbox { 
+            padding: 15px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+            overflow-y: auto; 
+            flex: 1;
+        }
+
+        .toolbox-title { 
+            font-size: 12px; 
+            font-weight: bold; 
+            color: #888; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            margin-bottom: 4px; 
+        }
+
+        /* Diseños de los Bloques */
+        .monkey-block { 
+            color: white; 
+            padding: 10px 14px; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            font-size: 13px; 
+            cursor: grab; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            gap: 8px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3); 
+            border-left: 5px solid rgba(0,0,0,0.3); 
+            position: relative;
+        }
+
+        .monkey-block:active { cursor: grabbing; }
+
+        .block-input { 
+            background: rgba(255, 255, 255, 0.25); 
+            border: none; 
+            color: white; 
+            padding: 3px 6px; 
+            border-radius: 4px; 
+            width: 45px; 
+            text-align: center; 
+            font-weight: bold; 
+            outline: none;
+        }
+
+        /* Colores de categorías */
+        .block-motion { background-color: var(--motion-blue); }
+        .block-control { background-color: var(--control-orange); color: #111; }
+        .block-control .block-input { background: rgba(0, 0, 0, 0.15); color: #111; }
+        .block-custom { background-color: var(--custom-purple); }
+
+        /* Botón de borrar bloque en el Workspace */
+        .btn-delete-block {
+            display: none;
+            background: rgba(0,0,0,0.3);
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #fff;
+        }
+
+        .workspace .btn-delete-block { display: flex; }
+
+        /* 2. Workspace (Centro) */
+        .workspace { 
+            flex: 1; 
+            background-color: #161920; 
+            background-image: radial-gradient(var(--border-color) 1px, transparent 1px); 
+            background-size: 20px 20px; 
+            padding: 20px; 
+            position: relative; 
+            overflow-y: auto; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px; 
+            align-items: flex-start; 
+        }
+
+        .workspace:empty::before { 
+            content: "Arrastra los bloques aquí para construir tu script..."; 
+            color: #4f5a70; 
+            font-size: 15px; 
+            position: absolute; 
+            top: 45%; 
+            left: 25%; 
+            pointer-events: none; 
+        }
+
+        /* 3. Escenario (Derecha) */
+        .stage-area { 
+            width: 340px; 
+            background-color: var(--panel-bg); 
+            border-left: 2px solid var(--border-color); 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 15px; 
+        }
+
+        .canvas-simulation { 
+            width: 300px; 
+            height: 240px; 
+            background-color: #ffffff; 
+            border-radius: 8px; 
+            border: 3px solid var(--border-color); 
+            position: relative; 
+            overflow: hidden; 
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        /* Personaje Principal: El Mono */
+        #monkey-sprite { 
+            font-size: 40px; 
+            position: absolute; 
+            top: 100px; 
+            left: 130px; 
+            transition: all 0.2s ease-out; 
+            line-height: 1;
+            transform-origin: center;
+        }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="nav-left">
-            <span style="font-size: 18px; font-weight: bold; color: #ffab19;">🐵 MonkeyMod v1.0</span>
-            <button class="nav-btn">Archivo</button>
-            <button class="nav-btn">Editar</button>
-            <button class="nav-btn">Addons</button>
+        <div class="title">🐵 MonkeyMod <span class="badge">v2.0 Nativo</span></div>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-inject" id="btn-inject">➕ Inyectar Bloque (JS)</button>
+            <button class="btn-run" id="btn-run">🟢 Ejecutar</button>
+            <button class="btn-clear" id="btn-clear">🔴 Limpiar</button>
         </div>
-        <button id="publish-btn" class="btn-publish">🚀 Publicar Proyecto</button>
     </header>
 
-    <div class="tab-bar">
-        <div class="tab active">💻 Código</div>
-        <div class="tab">🎨 Disfraces</div>
-        <div class="tab">🔊 Sonidos</div>
-        <div id="project-id-display" style="margin-left: auto; color: #ffab19; font-size: 13px; padding-top: 5px;">ID: ...</div>
-    </div>
-
-    <div class="main-container">
-        <div id="blocks-container"></div>
-        
-        <div id="stage-container">
-            <div class="stage-box">
-                <canvas id="stage-canvas" width="480" height="360"></canvas>
-                <div class="controls">
-                    <button id="green-flag" class="btn-action flag">🟢 Bandera</button>
-                    <button id="stop-all" class="btn-action stop">🔴 Parar</button>
-                </div>
+    <div class="editor-container">
+        <!-- 1. BARRA DE HERRAMIENTAS -->
+        <div class="sidebar">
+            <div class="category-tabs">
+                <div class="tab active" onclick="filterCategory('all')">Todos</div>
+                <div class="tab" onclick="filterCategory('motion')">Movimiento</div>
+                <div class="tab" onclick="filterCategory('control')">Control</div>
+                <div class="tab" onclick="filterCategory('custom')">Inyectados</div>
             </div>
 
-            <!-- Panel inferior del Objeto seleccionado -->
-            <div class="sprite-info">
-                <div class="info-row">
-                    <label>Objeto: <input type="text" class="info-input" value="Monkey1" style="width:100px;"></label>
-                    <label>X: <input type="text" class="info-input" value="0"></label>
-                    <label>Y: <input type="text" class="info-input" value="0"></label>
+            <div class="toolbox" id="monkey-toolbox">
+                <!-- Bloques de Movimiento -->
+                <div class="block-group" data-cat="motion">
+                    <div class="toolbox-title">Movimiento</div>
+                    <div class="monkey-block block-motion" draggable="true" data-action="move">
+                        <span>Mover <input type="number" class="block-input" value="10" onclick="event.stopPropagation()"> pasos</span>
+                        <span class="btn-delete-block" onclick="removeBlock(this)">✕</span>
+                    </div>
+                    <div class="monkey-block block-motion" draggable="true" data-action="rotate">
+                        <span>Girar 🔄 <input type="number" class="block-input" value="15" onclick="event.stopPropagation()"> grados</span>
+                        <span class="btn-delete-block" onclick="removeBlock(this)">✕</span>
+                    </div>
+                    <div class="monkey-block block-motion" draggable="true" data-action="jump">
+                        <span>Ir a posición aleatoria</span>
+                        <span class="btn-delete-block" onclick="removeBlock(this)">✕</span>
+                    </div>
                 </div>
-                <div class="info-row">
-                    <label>Mostrar: <span style="color:#ffab19;">👁️</span></label>
-                    <label>Tamaño: <input type="text" class="info-input" value="100"></label>
-                    <label>Dirección: <input type="text" class="info-input" value="90"></label>
+
+                <!-- Bloques de Control -->
+                <div class="block-group" data-cat="control">
+                    <div class="toolbox-title">Control</div>
+                    <div class="monkey-block block-control" draggable="true" data-action="reset">
+                        <span>Reiniciar posición</span>
+                        <span class="btn-delete-block" onclick="removeBlock(this)">✕</span>
+                    </div>
                 </div>
+
+                <!-- Bloques Inyectados -->
+                <div class="block-group" data-cat="custom">
+                    <div class="toolbox-title">Bloques Inyectados</div>
+                    <div id="custom-blocks-area" style="display:flex; flex-direction:column; gap:10px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. ESPACIO DE TRABAJO -->
+        <div class="workspace" id="monkey-workspace"></div>
+
+        <!-- 3. ESCENARIO -->
+        <div class="stage-area">
+            <div class="toolbox-title" style="width: 100%;">Escenario</div>
+            <div class="canvas-simulation">
+                <div id="monkey-sprite">🐵</div>
+            </div>
+            <div style="color: #626e82; font-size: 12px; text-align: center;">
+                Arrastra los bloques verticalmente al espacio de trabajo central y presiona "Ejecutar".
             </div>
         </div>
     </div>
 
-    <!-- Caja de herramientas con la paleta de colores completa de Scratch -->
-    <xml id="toolbox" style="display: none">
-        <category name="Movimiento" colour="#4C97FF">
-            <block type="motion_movesteps"><value name="STEPS"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>
-            <block type="motion_turnright"></block>
-            <block type="motion_turnleft"></block>
-        </category>
-        <category name="Apariencia" colour="#9966FF">
-            <block type="looks_sayforsecs"></block>
-            <block type="looks_nextcostume"></block>
-        </category>
-        <category name="Sonido" colour="#D65CD6">
-            <block type="sound_playuntildone"></block>
-        </category>
-        <category name="Eventos" colour="#FFBF00">
-            <block type="event_whenflagclicked"></block>
-        </category>
-        <category name="Control" colour="#FFAB19">
-            <block type="control_repeat"></block>
-            <block type="control_forever"></block>
-        </category>
-    </xml>
+    <script>
+        const monkey = document.getElementById('monkey-sprite');
+        const toolbox = document.getElementById('monkey-toolbox');
+        const workspace = document.getElementById('monkey-workspace');
+        const customBlocksArea = document.getElementById('custom-blocks-area');
+        
+        let posX = 130;
+        let posY = 100;
+        let rotation = 0;
+        let draggedElement = null;
 
-    <script type="module">
-        import './main.mjs';
-
-        // --- MANEJO DE IDENTIFICADORES WEB ---
-        const urlParams = new URLSearchParams(window.location.search);
-        let projectId = urlParams.get('id');
-        if (!projectId) {
-            projectId = Math.floor(10000000 + Math.random() * 90000000).toString();
-            window.history.replaceState({}, '', `edit.html?id=${projectId}`);
-        }
-        document.getElementById('project-id-display').innerText = `Proyecto ID: ${projectId}`;
-
-        document.getElementById('publish-btn').addEventListener('click', () => {
-            window.location.href = `play.html?id=${projectId}`;
+        // --- SISTEMA DRAG AND DROP NATIVO ---
+        document.addEventListener('dragstart', (e) => {
+            const block = e.target.closest('.monkey-block');
+            if (block) {
+                draggedElement = block;
+                e.dataTransfer.setData('text/plain', '');
+            }
         });
 
-        // --- CONFIGURACIÓN DE LOS MOTORES ---
-        setTimeout(() => {
-            try {
-                const targetBlockly = window.Blockly || Blockly;
-                const workspace = targetBlockly.inject('blocks-container', {
-                    toolbox: document.getElementById('toolbox'),
-                    media: 'https://unpkg.com',
-                    zoom: { controls: true, wheel: true, startScale: 0.75 },
-                    trashcan: true
-                });
+        workspace.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
 
-                const VMConstructor = window.VirtualMachine || window.ScratchVM;
-                if (VMConstructor) {
-                    const vm = new VMConstructor();
-                    const canvas = document.getElementById('stage-canvas');
+        workspace.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (draggedElement) {
+                // Si viene del panel de herramientas, creamos una copia
+                if (!workspace.contains(draggedElement)) {
+                    const clone = draggedElement.cloneNode(true);
                     
-                    if (window.ScratchStorage) vm.attachStorage(new window.ScratchStorage());
-                    if (window.ScratchRender) vm.attachRenderer(new window.ScratchRender(canvas));
-                    if (window.AudioEngine) vm.attachAudioEngine(new window.AudioEngine());
+                    // Asegurar que preserve el valor del input introducido
+                    const originalInput = draggedElement.querySelector('input');
+                    if (originalInput) {
+                        clone.querySelector('input').value = originalInput.value;
+                    }
 
-                    // CARGAR DISFRAZ PREDETERMINADO DE MONO
-                    const monkeySpriteSvg = `<svg xmlns="http://w3.org" viewBox="0 0 100 100" width="100" height="100"><circle cx="50" cy="50" r="35" fill="#6d4c41"/><circle cx="50" cy="48" r="28" fill="#a1887f"/><circle cx="42" cy="42" r="5" fill="#000"/><circle cx="58" cy="42" r="5" fill="#000"/><path d="M 40 60 Q 50 70 60 60" stroke="#000" stroke-width="3" fill="none"/><circle cx="15" cy="50" r="10" fill="#6d4c41"/><circle cx="85" cy="50" r="10" fill="#6d4c41"/></svg>`;
-                    
-                    vm.runtime.on('PROJECT_LOADED', () => {
-                        console.log("Monkey listo como sprite por defecto.");
-                    });
-
-                    document.getElementById('green-flag').addEventListener('click', () => vm.greenFlag());
-                    document.getElementById('stop-all').addEventListener('click', () => vm.stopAll());
-                    vm.start();
+                    workspace.appendChild(clone);
+                } else {
+                    // Si ya está en el workspace, lo reordenamos al final
+                    workspace.appendChild(draggedElement);
                 }
-            } catch (e) { console.error(e); }
-        }, 100);
+                draggedElement = null;
+            }
+        });
+
+        // Eliminar bloque al pulsar la '✕'
+        function removeBlock(el) {
+            const block = el.closest('.monkey-block');
+            if (block && workspace.contains(block)) {
+                block.remove();
+            }
+        }
+
+        // --- INYECCIÓN DINÁMICA DE BLOQUES (JS/HTML) ---
+        document.getElementById('btn-inject').addEventListener('click', () => {
+            const blockName = prompt("Nombre de tu nuevo bloque:", "Efecto Salto");
+            if (!blockName) return;
+
+            const jsCode = prompt(
+                "Escribe el código JavaScript a ejecutar:\nVariables disponibles: posX, posY, rotation, monkey\nEjemplo:",
+                "posY -= 30; monkey.style.top = posY + 'px';"
+            );
+            if (!jsCode) return;
+
+            const newBlock = document.createElement('div');
+            newBlock.className = 'monkey-block block-custom';
+            newBlock.draggable = true;
+            newBlock.innerHTML = `<span>⚙️ ${blockName}</span><span class="btn-delete-block" onclick="removeBlock(this)">✕</span>`;
+            newBlock.setAttribute('data-script', jsCode);
+
+            customBlocksArea.appendChild(newBlock);
+            alert(`¡Bloque "${blockName}" inyectado correctamente!`);
+        });
+
+        // --- MOTOR DE EJECUCIÓN SCRIPT ---
+        document.getElementById('btn-run').addEventListener('click', () => {
+            const activeBlocks = workspace.querySelectorAll('.monkey-block');
+            if (activeBlocks.length === 0) {
+                alert("¡Arrastra al menos un bloque al centro primero!");
+                return;
+            }
+
+            activeBlocks.forEach((block) => {
+                const action = block.getAttribute('data-action');
+                const customScript = block.getAttribute('data-script');
+
+                if (customScript) {
+                    // Ejecución de script inyectado mediante Function dinámico
+                    try {
+                        const runCustom = new Function('posX', 'posY', 'rotation', 'monkey', customScript);
+                        runCustom(posX, posY, rotation, monkey);
+                    } catch (err) {
+                        console.error("Error en bloque personalizado:", err);
+                    }
+                } else {
+                    // Acciones nativas base
+                    if (action === 'move') {
+                        const steps = parseInt(block.querySelector('input').value) || 10;
+                        posX += steps;
+                        if (posX > 260) posX = 0; // Límite de pantalla
+                        monkey.style.left = posX + 'px';
+                    } else if (action === 'rotate') {
+                        const deg = parseInt(block.querySelector('input').value) || 15;
+                        rotation += deg;
+                        monkey.style.transform = `rotate(${rotation}deg)`;
+                    } else if (action === 'jump') {
+                        posX = Math.floor(Math.random() * 240);
+                        posY = Math.floor(Math.random() * 180);
+                        monkey.style.left = posX + 'px';
+                        monkey.style.top = posY + 'px';
+                    } else if (action === 'reset') {
+                        posX = 130;
+                        posY = 100;
+                        rotation = 0;
+                        monkey.style.left = posX + 'px';
+                        monkey.style.top = posY + 'px';
+                        monkey.style.transform = `rotate(0deg)`;
+                    }
+                }
+            });
+        });
+
+        // Limpiar espacio de trabajo
+        document.getElementById('btn-clear').addEventListener('click', () => {
+            workspace.innerHTML = '';
+        });
+
+        // Filtrado por categorías
+        function filterCategory(cat) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const groups = document.querySelectorAll('.block-group');
+            groups.forEach(group => {
+                if (cat === 'all' || group.getAttribute('data-cat') === cat) {
+                    group.style.display = 'block';
+                } else {
+                    group.style.display = 'none';
+                }
+            });
+        }
     </script>
 </body>
 </html>
