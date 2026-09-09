@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>MonkeyMod - Autorización</title>
+    <style>
+        body { background-color: #1e1e24; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .auth-card { background: #2a2a32; padding: 30px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); width: 360px; }
+        .logo { font-size: 26px; font-weight: bold; color: #ff9f1c; margin-bottom: 15px; }
+        .btn-box { display: flex; justify-content: space-around; margin-top: 25px; }
+        .btn { padding: 12px 25px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; width: 110px; }
+        .btn-allow { background-color: #4cc9f0; color: #1e1e24; }
+        .btn-deny { background-color: #f72585; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="auth-card">
+    <div class="logo">🐒 MonkeyMod Auth</div>
+    <h3>¿Conectar aplicación?</h3>
+    <p>Un proyecto externo solicita verificar tu identidad de MonkeyMod para iniciar sesión.</p>
+    <p id="appInfo" style="color: #aaa; font-size: 13px; font-style: italic;">Detectando ID de la aplicación...</p>
+    
+    <div class="btn-box">
+        <button onclick="approveAccess()" class="btn btn-allow">Permitir</button>
+        <button onclick="denyAccess()" class="btn btn-deny">Rechazar</button>
+    </div>
+</div>
+
+<script>
+    // Captura automática de parámetros dinámicos de la barra de direcciones
+    const urlParams = new URLSearchParams(window.location.search);
+    // Busca tanto '?id=' como '?client_id=' para evitar fallas en el login
+    const currentClientId = urlParams.get('id') || urlParams.get('client_id'); 
+
+    if (currentClientId) {
+        document.getElementById('appInfo').innerText = "Client ID Conectado: " + currentClientId;
+    } else {
+        document.getElementById('appInfo').innerText = "⚠️ No se detectó ningún ID aleatorio en la URL.";
+    }
+
+    async function approveAccess() {
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (!session) {
+            alert("Debes tener una sesión activa. Redirigiendo al login...");
+            window.location.href = "/login.html";
+            return;
+        }
+
+        if (!currentClientId) {
+            alert("Error: Faltan las credenciales de la aplicación en la URL.");
+            return;
+        }
+
+        // Crea el token único de inicio de sesión de un solo uso
+        const singleUseToken = 'mm_tok_' + Math.random().toString(36).substring(2, 15);
+
+        // Guardar el token de verificación en Supabase
+        const { error } = await supabase
+            .from('active_oauth_sessions')
+            .insert([{ login_token: singleUseToken, user_id: session.user.id, client_id: currentClientId }]);
+
+        if (!error) {
+            // Buscamos la URL de redirección original de la app para mandarlo de vuelta
+            const { data: appData } = await supabase
+                .from('registered_apps')
+                .select('redirect_uri')
+                .eq('client_id', currentClientId)
+                .single();
+
+            const finalRedirect = appData ? appData.redirect_uri : "https://duckdns.org";
+            window.location.href = `${finalRedirect}?token=${singleUseToken}`;
+        } else {
+            console.error("Fallo al procesar el token OAuth:", error.message);
+        }
+    }
+
+    function denyAccess() {
+        window.location.href = "https://duckdns.org?auth=cancelled";
+    }
+</script>
+</body>
+</html>
