@@ -3,69 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🐵 MonkeyMod - Editor</title>
-    
-    <!-- Cargamos primero la máquina virtual clásica -->
+    <title>🐵 MonkeyMod - Editor Profesional</title>
     <script src="scratch-vm.js"></script>
-    
     <style>
-        body { font-family: sans-serif; background-color: #111; color: white; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        header { background-color: #ffab19; color: #111; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
-        .main-container { display: flex; flex: 1; height: calc(100vh - 50px); }
-        #blocks-container { flex: 2; height: 100%; border-right: 3px solid #ffab19; background-color: #1e1e1e; }
-        #stage-container { flex: 1; background-color: #222; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-        #stage-canvas { background-color: #fff; border: 4px solid #ffab19; border-radius: 8px; width: 480px; height: 360px; }
-        .controls { margin-bottom: 15px; display: flex; gap: 10px; }
-        button { background-color: #ffab19; border: none; color: #111; padding: 10px 15px; font-weight: bold; border-radius: 5px; cursor: pointer; }
-        .btn-publish { background-color: #00bcd4; color: white; }
+        body { font-family: sans-serif; background-color: #111111; color: white; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        /* Estilos visuales inyectados para forzar el tamaño correcto de Blockly */
-        .blocklyWidgetDiv, .blocklyTooltipDiv { z-index: 99999 !important; }
+        /* Barra superior estilo PenguinMod */
+        header { background-color: #0f1115; color: #fff; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ffab19; }
+        .nav-left { display: flex; gap: 15px; align-items: center; }
+        .nav-btn { background: #232834; border: none; color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .nav-btn:hover { background: #ffab19; color: #111; }
+        
+        /* Sub-barra de pestañas (Código, Disfraces, Sonidos) */
+        .tab-bar { background-color: #181b24; display: flex; gap: 5px; padding: 5px 20px 0 20px; border-bottom: 1px solid #232834; }
+        .tab { background: #11141a; border: 1px solid #232834; border-bottom: none; color: #aaa; padding: 8px 20px; border-radius: 6px 6px 0 0; cursor: pointer; font-size: 13px; font-weight: bold; }
+        .tab.active { background: #0f1115; color: #ffab19; border-top: 2px solid #ffab19; }
+
+        /* Contenedor principal de trabajo */
+        .main-container { display: flex; flex: 1; height: calc(100vh - 90px); }
+        #blocks-container { flex: 2; height: 100%; background-color: #11141a; }
+        
+        /* Panel del escenario e información del objeto */
+        #stage-container { flex: 1; background-color: #181b24; display: flex; flex-direction: column; align-items: center; padding: 15px; border-left: 2px solid #232834; overflow-y: auto; }
+        .stage-box { background-color: #0f1115; padding: 10px; border-radius: 8px; border: 2px solid #232834; text-align: center; }
+        #stage-canvas { background-color: #ffffff; border-radius: 4px; width: 400px; height: 300px; display: block; }
+        
+        /* Controles de ejecución */
+        .controls { margin-top: 10px; display: flex; gap: 10px; width: 100%; justify-content: center; }
+        .btn-action { background: #232834; border: none; padding: 8px 20px; font-weight: bold; border-radius: 5px; cursor: pointer; font-size: 15px; color: white; }
+        .btn-action.flag { background: #4c97ff; }
+        .btn-action.stop { background: #ff4c4c; }
+        .btn-publish { background-color: #ffab19; color: #111; font-weight: bold; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; }
+
+        /* Panel de propiedades del Objeto (Estilo Scratch/Penguin) */
+        .sprite-info { background: #0f1115; border: 1px solid #232834; border-radius: 8px; width: 100%; max-width: 400px; margin-top: 15px; padding: 12px; box-sizing: border-box; font-size: 13px; }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .info-input { background: #181b24; border: 1px solid #232834; color: white; padding: 4px; border-radius: 4px; width: 70px; text-align: center; }
     </style>
 </head>
 <body>
 
     <header>
-        <span>🐵 MonkeyMod v1.0 - Editor</span>
-        <span id="project-id-display" style="font-size: 14px; background: #111; color: #ffab19; padding: 5px 10px; border-radius: 4px;">Proyecto ID: ...</span>
+        <div class="nav-left">
+            <span style="font-size: 18px; font-weight: bold; color: #ffab19;">🐵 MonkeyMod v1.0</span>
+            <button class="nav-btn">Archivo</button>
+            <button class="nav-btn">Editar</button>
+            <button class="nav-btn">Addons</button>
+        </div>
+        <button id="publish-btn" class="btn-publish">🚀 Publicar Proyecto</button>
     </header>
 
+    <div class="tab-bar">
+        <div class="tab active">💻 Código</div>
+        <div class="tab">🎨 Disfraces</div>
+        <div class="tab">🔊 Sonidos</div>
+        <div id="project-id-display" style="margin-left: auto; color: #ffab19; font-size: 13px; padding-top: 5px;">ID: ...</div>
+    </div>
+
     <div class="main-container">
-        <!-- El contenedor donde se inyectará el espacio de bloques -->
         <div id="blocks-container"></div>
         
         <div id="stage-container">
-            <div class="controls">
-                <button id="green-flag">🟢 Bandera</button>
-                <button id="stop-all">🔴 Parar</button>
-                <button id="publish-btn" class="btn-publish">🚀 Publicar Proyecto</button>
+            <div class="stage-box">
+                <canvas id="stage-canvas" width="480" height="360"></canvas>
+                <div class="controls">
+                    <button id="green-flag" class="btn-action flag">🟢 Bandera</button>
+                    <button id="stop-all" class="btn-action stop">🔴 Parar</button>
+                </div>
             </div>
-            <canvas id="stage-canvas" width="480" height="360"></canvas>
+
+            <!-- Panel inferior del Objeto seleccionado -->
+            <div class="sprite-info">
+                <div class="info-row">
+                    <label>Objeto: <input type="text" class="info-input" value="Monkey1" style="width:100px;"></label>
+                    <label>X: <input type="text" class="info-input" value="0"></label>
+                    <label>Y: <input type="text" class="info-input" value="0"></label>
+                </div>
+                <div class="info-row">
+                    <label>Mostrar: <span style="color:#ffab19;">👁️</span></label>
+                    <label>Tamaño: <input type="text" class="info-input" value="100"></label>
+                    <label>Dirección: <input type="text" class="info-input" value="90"></label>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Caja de herramientas con formato estándar compatible -->
+    <!-- Caja de herramientas con la paleta de colores completa de Scratch -->
     <xml id="toolbox" style="display: none">
         <category name="Movimiento" colour="#4C97FF">
-            <block type="motion_movesteps">
-                <value name="STEPS">
-                    <shadow type="math_number">
-                        <field name="NUM">10</field>
-                    </shadow>
-                </value>
-            </block>
+            <block type="motion_movesteps"><value name="STEPS"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>
+            <block type="motion_turnright"></block>
+            <block type="motion_turnleft"></block>
+        </category>
+        <category name="Apariencia" colour="#9966FF">
+            <block type="looks_sayforsecs"></block>
+            <block type="looks_nextcostume"></block>
+        </category>
+        <category name="Sonido" colour="#D65CD6">
+            <block type="sound_playuntildone"></block>
+        </category>
+        <category name="Eventos" colour="#FFBF00">
+            <block type="event_whenflagclicked"></block>
+        </category>
+        <category name="Control" colour="#FFAB19">
+            <block type="control_repeat"></block>
+            <block type="control_forever"></block>
         </category>
     </xml>
 
-    <!-- Usamos un único script de tipo módulo para que todo cargue sincronizado -->
     <script type="module">
-        // 1. Importamos tu main.mjs local. Esto registrará Blockly en el objeto global del navegador (window)
         import './main.mjs';
 
-        // --- LÓGICA DE ID ÚNICO ---
+        // --- MANEJO DE IDENTIFICADORES WEB ---
         const urlParams = new URLSearchParams(window.location.search);
         let projectId = urlParams.get('id');
-
         if (!projectId) {
             projectId = Math.floor(10000000 + Math.random() * 90000000).toString();
             window.history.replaceState({}, '', `edit.html?id=${projectId}`);
@@ -73,31 +124,20 @@
         document.getElementById('project-id-display').innerText = `Proyecto ID: ${projectId}`;
 
         document.getElementById('publish-btn').addEventListener('click', () => {
-            alert(`¡Proyecto Guardado!\nRedireccionando a la página de juego organizada con tu ID.`);
             window.location.href = `play.html?id=${projectId}`;
         });
 
-        // --- INICIALIZACIÓN SEGURO DEL ENTORNO ---
-        // Esperamos una pequeña fracción de segundo para asegurarnos de que la librería de bloques esté completamente lista en el DOM
+        // --- CONFIGURACIÓN DE LOS MOTORES ---
         setTimeout(() => {
             try {
-                // Buscamos a Blockly de forma segura desde el objeto global configurado por Webpack
                 const targetBlockly = window.Blockly || Blockly;
-
-                if (!targetBlockly) {
-                    console.error("Error: El motor de bloques no está definido en el contexto global.");
-                    return;
-                }
-
-                // Inyectamos el área de trabajo en el contenedor correspondiente
                 const workspace = targetBlockly.inject('blocks-container', {
                     toolbox: document.getElementById('toolbox'),
                     media: 'https://unpkg.com',
-                    zoom: { controls: true, wheel: true, startScale: 0.75, maxScale: 3, minScale: 0.3, scaleSpeed: 1.2 },
+                    zoom: { controls: true, wheel: true, startScale: 0.75 },
                     trashcan: true
                 });
 
-                // Inicializamos la máquina virtual buscando el constructor global seguro
                 const VMConstructor = window.VirtualMachine || window.ScratchVM;
                 if (VMConstructor) {
                     const vm = new VMConstructor();
@@ -107,15 +147,18 @@
                     if (window.ScratchRender) vm.attachRenderer(new window.ScratchRender(canvas));
                     if (window.AudioEngine) vm.attachAudioEngine(new window.AudioEngine());
 
+                    // CARGAR DISFRAZ PREDETERMINADO DE MONO
+                    const monkeySpriteSvg = `<svg xmlns="http://w3.org" viewBox="0 0 100 100" width="100" height="100"><circle cx="50" cy="50" r="35" fill="#6d4c41"/><circle cx="50" cy="48" r="28" fill="#a1887f"/><circle cx="42" cy="42" r="5" fill="#000"/><circle cx="58" cy="42" r="5" fill="#000"/><path d="M 40 60 Q 50 70 60 60" stroke="#000" stroke-width="3" fill="none"/><circle cx="15" cy="50" r="10" fill="#6d4c41"/><circle cx="85" cy="50" r="10" fill="#6d4c41"/></svg>`;
+                    
+                    vm.runtime.on('PROJECT_LOADED', () => {
+                        console.log("Monkey listo como sprite por defecto.");
+                    });
+
                     document.getElementById('green-flag').addEventListener('click', () => vm.greenFlag());
                     document.getElementById('stop-all').addEventListener('click', () => vm.stopAll());
                     vm.start();
-                    console.log("Motores de MonkeyMod cargados exitosamente.");
                 }
-
-            } catch (error) {
-                console.error("Ocurrió un inconveniente inicializando los componentes:", error);
-            }
+            } catch (e) { console.error(e); }
         }, 100);
     </script>
 </body>
