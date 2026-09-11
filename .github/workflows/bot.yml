@@ -1,0 +1,20 @@
+name: MonkeyBot Responder
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  responder:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comentar en el PR
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.payload.pull_request.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '¡Hola! 🐵 Gracias por abrir un Pull Request en MonkeyMod. El equipo (o sea, yo) lo revisará pronto.'
+            })
