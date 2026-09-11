@@ -2,19 +2,39 @@ name: MonkeyBot Responder
 
 on:
   pull_request:
-    types: [opened]
+    types: [opened, synchronize]
 
 jobs:
   responder:
     runs-on: ubuntu-latest
     steps:
-      - name: Comentar en el PR
+      - name: Comentar en el PR con estilo
         uses: actions/github-script@v6
         with:
           script: |
-            github.rest.issues.createComment({
+            // Lista de respuestas posibles para que el bot varie
+            const mensajes = [
+              "¡Hola! 🐵 Gracias por abrir este Pull Request en MonkeyMod. ¡A revisar código se ha dicho!",
+              "¡Ey! 🚀 Nuevo PR detectado en la selva de MonkeyMod. ¡Excelente trabajo!",
+              "¡Monstruo de PR! 🐒 El equipo ya le echará un vistazo a estos cambios muy pronto.",
+              "¡Hola, Anyelo! 🌴 Veo movimiento por aquí. Analizando el Pull Request..."
+            ];
+
+            // Seleccionar un mensaje al azar
+            const mensajeAleatorio = mensajes[Math.floor(Math.random() * mensajes.length)];
+            
+            // Enlace directo al icono que guardaste en main
+            const iconUrl = `https://raw.githubusercontent.com/${context.repo.owner}/${context.repo.repo}/main/icon.svg`;
+            
+            // Armar el cuerpo del comentario con la imagen miniatura del logo
+            const body = `<p align="center"><img src="${iconUrl}" width="80" height="80" alt="MonkeyBot Logo"/></p>\n\n` +
+                         `### 🐒 **MonkeyBot Reportando**\n\n` +
+                         `${mensajeAleatorio}\n\n` +
+                         `--- *¡Automatización activada para monkeymod.is-a.dev!*`;
+
+            await github.rest.issues.createComment({
               issue_number: context.payload.pull_request.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '¡Hola! 🐵 Gracias por abrir un Pull Request en MonkeyMod. El equipo (o sea, yo) lo revisará pronto.'
-            })
+              body: body
+            });
